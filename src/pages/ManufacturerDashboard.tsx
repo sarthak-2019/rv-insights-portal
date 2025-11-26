@@ -12,6 +12,7 @@ import {
   defectReports,
   inventoryStats,
 } from "@/data/inventoryData";
+import { AIAlertsPanel } from "@/components/dashboard/AIAlertsPanel";
 import {
   Package,
   AlertTriangle,
@@ -24,6 +25,7 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Bot,
 } from "lucide-react";
 import {
   BarChart,
@@ -136,8 +138,12 @@ export default function ManufacturerDashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="inventory" className="space-y-4">
+        <Tabs defaultValue="ai-alerts" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="ai-alerts" className="gap-2">
+              <Bot className="h-4 w-4" />
+              AI Alerts
+            </TabsTrigger>
             <TabsTrigger value="inventory" className="gap-2">
               <Package className="h-4 w-4" />
               Inventory
@@ -151,6 +157,11 @@ export default function ManufacturerDashboard() {
               Defect Reports
             </TabsTrigger>
           </TabsList>
+
+          {/* AI Alerts Tab */}
+          <TabsContent value="ai-alerts">
+            <AIAlertsPanel />
+          </TabsContent>
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
