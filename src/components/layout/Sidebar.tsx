@@ -8,18 +8,24 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   Users,
   BarChart3,
+  Shield,
+  Truck,
+  Package,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 interface SidebarProps {
   className?: string;
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Shield, label: "Executive", path: "/executive" },
+  { icon: LayoutDashboard, label: "Customer Service", path: "/" },
+  { icon: Package, label: "Manufacturer", path: "/manufacturer" },
+  { icon: Truck, label: "Suppliers", path: "/supplier" },
   { icon: Phone, label: "Call Logs", path: "/calls" },
   { icon: Building2, label: "Companies", path: "/companies" },
   { icon: FileText, label: "Transcripts", path: "/transcripts" },
