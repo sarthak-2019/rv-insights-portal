@@ -14,6 +14,7 @@ import {
   Target,
   Package,
   AlertTriangle,
+  Mail,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -33,6 +34,7 @@ const navItems = [
   { icon: AlertTriangle, label: "Escalations", path: "/escalations" },
   { icon: Users, label: "Team", path: "/team" },
   { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: Mail, label: "Auto-Email", path: "/auto-email" },
 ];
 
 export function Sidebar({ className }: SidebarProps) {
