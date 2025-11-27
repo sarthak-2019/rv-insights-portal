@@ -8,6 +8,10 @@ import CallLogs from "./pages/CallLogs";
 import Companies from "./pages/Companies";
 import Transcripts from "./pages/Transcripts";
 import Analytics from "./pages/Analytics";
+import AIPredictive from "./pages/AIPredictive";
+import AIPerformance from "./pages/AIPerformance";
+import Vendors from "./pages/Vendors";
+import Escalations from "./pages/Escalations";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -26,6 +30,10 @@ const App = () => (
           <Route path="/companies" element={<Companies />} />
           <Route path="/transcripts" element={<Transcripts />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/ai-predictive" element={<AIPredictive />} />
+          <Route path="/ai-performance" element={<AIPerformance />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/escalations" element={<Escalations />} />
           <Route path="/team" element={<Team />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

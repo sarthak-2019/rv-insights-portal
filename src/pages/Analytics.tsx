@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { callLogs, companies, dashboardStats } from "@/data/mockData";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { dashboardStats, callLogs, companies, repairIssues } from "@/data/mockData";
 import { StatCard } from "@/components/dashboard/StatCard";
 import {
   BarChart,
@@ -20,9 +22,9 @@ import {
 import {
   Phone,
   TrendingUp,
+  TrendingDown,
   Clock,
   Building2,
-  Users,
 } from "lucide-react";
 
 export default function Analytics() {
@@ -126,10 +128,52 @@ export default function Analytics() {
           />
         </div>
 
+        {/* Top Repair Issues Heatmap */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Top Repair Issues Heatmap</h3>
+          <div className="space-y-3">
+            {repairIssues.slice(0, 10).map((issue, idx) => (
+              <div key={idx} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">{issue.category}</Badge>
+                    <span className="font-medium">{issue.issue}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {issue.trend > 0 ? (
+                      <TrendingUp className="h-4 w-4 text-destructive" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-success" />
+                    )}
+                    <span className={issue.trend > 0 ? "text-destructive" : "text-success"}>
+                      {issue.trend > 0 ? "+" : ""}{issue.trend}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${
+                        issue.severity === "critical" ? "bg-destructive" :
+                        issue.severity === "high" ? "bg-warning" :
+                        issue.severity === "medium" ? "bg-blue-500" :
+                        "bg-success"
+                      }`}
+                      style={{ width: `${(issue.count / repairIssues[0].count) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium w-12 text-right">{issue.count}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Top models: {issue.topModels.join(", ")}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+
         {/* Charts Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Daily Trend */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h3 className="mb-4 text-lg font-semibold">Weekly Call Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailyTrendData}>
@@ -160,10 +204,10 @@ export default function Analytics() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
 
           {/* Top Companies */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h3 className="mb-4 text-lg font-semibold">Top Companies by Call Volume</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCompaniesData} layout="vertical">
@@ -187,10 +231,10 @@ export default function Analytics() {
                 <Bar dataKey="calls" fill="hsl(217, 91%, 60%)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
 
           {/* Issue Type Distribution */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h3 className="mb-4 text-lg font-semibold">Issue Type Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -218,10 +262,10 @@ export default function Analytics() {
                 />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
 
           {/* Call Status */}
-          <div className="rounded-xl border border-border bg-card p-6">
+          <Card className="p-6">
             <h3 className="mb-4 text-lg font-semibold">Call Status Overview</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -249,11 +293,11 @@ export default function Analytics() {
                 />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </Card>
         </div>
 
         {/* Department Breakdown */}
-        <div className="rounded-xl border border-border bg-card p-6">
+        <Card className="p-6">
           <h3 className="mb-4 text-lg font-semibold">Department Breakdown</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {departmentData.map((dept, index) => (
@@ -277,7 +321,7 @@ export default function Analytics() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </MainLayout>
   );
