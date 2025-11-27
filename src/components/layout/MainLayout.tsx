@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -38,10 +37,6 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Main Content */}
       <main className={cn("min-h-screen transition-all duration-300 lg:ml-64")}>
-        {/* Top Bar with Role Switcher */}
-        <div className="sticky top-0 z-30 flex items-center justify-end border-b bg-background/95 backdrop-blur px-6 py-3">
-          <RoleSwitcher />
-        </div>
         <div className="p-6 lg:p-8">{children}</div>
       </main>
     </div>
