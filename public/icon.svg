@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple RV icon for smaller sizes -->
+  <rect x="2" y="12" width="20" height="12" rx="2" fill="#2563eb"/>
+  <path d="M 8 12 L 10 8 L 18 8 L 20 12 Z" fill="#1e40af"/>
+  <rect x="4" y="14" width="4" height="4" rx="1" fill="white" opacity="0.8"/>
+  <rect x="10" y="14" width="4" height="4" rx="1" fill="white" opacity="0.8"/>
+  <rect x="16" y="14" width="4" height="4" rx="1" fill="white" opacity="0.8"/>
+  <circle cx="8" cy="25" r="2.5" fill="#1e293b" stroke="white" stroke-width="0.5"/>
+  <circle cx="18" cy="25" r="2.5" fill="#1e293b" stroke="white" stroke-width="0.5"/>
+  <!-- Analytics bars -->
+  <rect x="24" y="18" width="2" height="6" rx="1" fill="#fbbf24"/>
+  <rect x="27" y="15" width="2" height="9" rx="1" fill="#fbbf24"/>
+  <rect x="30" y="12" width="2" height="12" rx="1" fill="#fbbf24"/>
+</svg>
+
