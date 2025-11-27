@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "all">("week");
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
@@ -126,10 +127,46 @@ export default function Dashboard() {
         <div className="rounded-xl border border-border bg-card p-4 animate-fade-in">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CompanyFilter
-                selectedCompanies={selectedCompanies}
-                onSelectionChange={setSelectedCompanies}
-              />
+              <div className="flex items-center gap-2">
+                <CompanyFilter
+                  selectedCompanies={selectedCompanies}
+                  onSelectionChange={setSelectedCompanies}
+                />
+                <div className="flex gap-1 bg-muted rounded-lg p-1">
+                  <button
+                    onClick={() => setDateRange("today")}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      dateRange === "today" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                    }`}
+                  >
+                    Today
+                  </button>
+                  <button
+                    onClick={() => setDateRange("week")}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      dateRange === "week" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                    }`}
+                  >
+                    Week
+                  </button>
+                  <button
+                    onClick={() => setDateRange("month")}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      dateRange === "month" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                    }`}
+                  >
+                    Month
+                  </button>
+                  <button
+                    onClick={() => setDateRange("all")}
+                    className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      dateRange === "all" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                    }`}
+                  >
+                    All Time
+                  </button>
+                </div>
+              </div>
               <div className="relative w-full lg:w-80">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input

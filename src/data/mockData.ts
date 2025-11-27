@@ -583,27 +583,108 @@ export const technicianMetrics: TechnicianMetrics[] = [
   },
 ];
 
-// Sample transcripts
+// Enhanced Transcript with Timestamps
+export interface TranscriptSegment {
+  id: string;
+  timestamp: string;
+  speaker: "agent" | "customer" | "system";
+  text: string;
+  sentiment?: "positive" | "neutral" | "negative";
+  confidence?: number;
+}
+
+export interface DetailedTranscript {
+  callId: string;
+  duration: string;
+  recordingUrl?: string;
+  segments: TranscriptSegment[];
+  summary: string;
+  keyPoints: string[];
+  actionItems: string[];
+  sentiment: {
+    overall: "positive" | "neutral" | "negative";
+    score: number;
+  };
+}
+
+export const detailedTranscripts: Record<string, DetailedTranscript> = {
+  "CALL-000001": {
+    callId: "CALL-000001",
+    duration: "8:45",
+    segments: [
+      { id: "s1", timestamp: "00:00", speaker: "system", text: "Call connected. Recording started." },
+      { id: "s2", timestamp: "00:02", speaker: "agent", text: "Thank you for calling RV Support, this is Alex. How can I help you today?", sentiment: "positive", confidence: 0.95 },
+      { id: "s3", timestamp: "00:08", speaker: "customer", text: "Hi Alex, I'm calling about my 2021 Keystone Cougar. I'm having issues with my slide-out.", sentiment: "neutral", confidence: 0.88 },
+      { id: "s4", timestamp: "00:15", speaker: "agent", text: "I'm sorry to hear that. Can you describe what's happening with the slide-out?", sentiment: "positive", confidence: 0.92 },
+      { id: "s5", timestamp: "00:20", speaker: "customer", text: "When I try to extend it, it makes a grinding noise and only goes about halfway out.", sentiment: "negative", confidence: 0.85 },
+      { id: "s6", timestamp: "00:28", speaker: "agent", text: "That does sound like it could be an issue with the slide-out motor or possibly the gear mechanism. Have you noticed any debris or obstructions in the track?", sentiment: "neutral", confidence: 0.90 },
+      { id: "s7", timestamp: "00:38", speaker: "customer", text: "I checked and the track looks clear.", sentiment: "neutral", confidence: 0.93 },
+      { id: "s8", timestamp: "00:42", speaker: "agent", text: "Alright, I'd recommend bringing it in for a diagnostic. We can get you scheduled as early as next Tuesday. Would that work for you?", sentiment: "positive", confidence: 0.94 },
+      { id: "s9", timestamp: "00:52", speaker: "customer", text: "Yes, Tuesday works great.", sentiment: "positive", confidence: 0.96 },
+      { id: "s10", timestamp: "00:55", speaker: "agent", text: "Perfect. I've got you scheduled for Tuesday at 9 AM. Is there anything else I can help with?", sentiment: "positive", confidence: 0.97 },
+      { id: "s11", timestamp: "01:02", speaker: "customer", text: "No, that's all. Thank you!", sentiment: "positive", confidence: 0.98 },
+      { id: "s12", timestamp: "01:05", speaker: "agent", text: "You're welcome. We'll see you Tuesday. Have a great day!", sentiment: "positive", confidence: 0.97 },
+      { id: "s13", timestamp: "01:10", speaker: "system", text: "Call ended. Total duration: 8 minutes 45 seconds." },
+    ],
+    summary: "Customer reported grinding noise and partial extension issue with slide-out on 2021 Keystone Cougar. Scheduled diagnostic appointment for Tuesday 9 AM.",
+    keyPoints: [
+      "Slide-out extending only halfway",
+      "Grinding noise during extension",
+      "Track appears clear of debris",
+      "Appointment scheduled for Tuesday 9 AM"
+    ],
+    actionItems: [
+      "Diagnostic inspection scheduled",
+      "Check slide-out motor and gear mechanism",
+      "Send confirmation email to customer"
+    ],
+    sentiment: { overall: "positive", score: 0.82 }
+  },
+  "CALL-000002": {
+    callId: "CALL-000002",
+    duration: "12:30",
+    segments: [
+      { id: "s1", timestamp: "00:00", speaker: "system", text: "Call connected. Recording started." },
+      { id: "s2", timestamp: "00:03", speaker: "agent", text: "Good afternoon, this is Sarah from RV Technical Support. How may I assist you?", sentiment: "positive", confidence: 0.94 },
+      { id: "s3", timestamp: "00:09", speaker: "customer", text: "Hi Sarah, I'm having a major problem with my Dometic AC unit. It's completely stopped cooling.", sentiment: "negative", confidence: 0.89 },
+      { id: "s4", timestamp: "00:17", speaker: "agent", text: "I understand how frustrating that must be, especially in this heat. Let me help you troubleshoot this. Can you tell me what model year your RV is?", sentiment: "positive", confidence: 0.91 },
+      { id: "s5", timestamp: "00:28", speaker: "customer", text: "It's a 2022 Thor Venetian.", sentiment: "neutral", confidence: 0.95 },
+      { id: "s6", timestamp: "00:32", speaker: "agent", text: "Thank you. Is the unit turning on at all, or is it completely unresponsive?", sentiment: "neutral", confidence: 0.93 },
+      { id: "s7", timestamp: "00:38", speaker: "customer", text: "It turns on, the fan runs, but there's no cold air coming out.", sentiment: "negative", confidence: 0.87 },
+      { id: "s8", timestamp: "00:45", speaker: "agent", text: "Okay, that helps narrow it down. It sounds like it could be a compressor issue. Have you checked your circuit breaker to make sure it hasn't tripped?", sentiment: "neutral", confidence: 0.90 },
+      { id: "s9", timestamp: "00:55", speaker: "customer", text: "Yes, I checked that first thing. Everything looks fine there.", sentiment: "neutral", confidence: 0.92 },
+      { id: "s10", timestamp: "01:00", speaker: "agent", text: "I'm going to send you a diagnostic video that shows how to check the compressor. This is a common issue we've been seeing with 2022-2023 Dometic units. In the meantime, I'll create a priority service ticket.", sentiment: "positive", confidence: 0.88 },
+      { id: "s11", timestamp: "01:15", speaker: "customer", text: "That would be great. How soon can someone look at it?", sentiment: "neutral", confidence: 0.90 },
+      { id: "s12", timestamp: "01:20", speaker: "agent", text: "I can get you scheduled for tomorrow morning at 8 AM. We'll also check if this is covered under your warranty.", sentiment: "positive", confidence: 0.95 },
+      { id: "s13", timestamp: "01:30", speaker: "customer", text: "Perfect, thank you so much for your help!", sentiment: "positive", confidence: 0.97 },
+      { id: "s14", timestamp: "01:35", speaker: "agent", text: "You're welcome! I'm sending the video and appointment confirmation to your email now. We'll take good care of you tomorrow.", sentiment: "positive", confidence: 0.96 },
+      { id: "s15", timestamp: "01:45", speaker: "system", text: "Call ended. Total duration: 12 minutes 30 seconds." },
+    ],
+    summary: "Customer reported complete cooling failure on 2022 Thor Venetian Dometic AC unit. Compressor suspected. Priority service scheduled for next day with warranty check.",
+    keyPoints: [
+      "AC fan running but no cooling",
+      "2022 Thor Venetian - Dometic AC",
+      "Circuit breaker checked - working fine",
+      "Compressor failure suspected",
+      "Priority appointment scheduled for 8 AM next day"
+    ],
+    actionItems: [
+      "Send diagnostic video to customer email",
+      "Create priority service ticket",
+      "Check warranty coverage for Dometic AC",
+      "Schedule technician for 8 AM appointment",
+      "Send appointment confirmation"
+    ],
+    sentiment: { overall: "positive", score: 0.78 }
+  }
+};
+
+// Sample transcripts (legacy)
 export const sampleTranscripts: Record<string, string> = {
-  "CALL-000001": `Agent: Thank you for calling RV Support, this is Alex. How can I help you today?
-
-Customer: Hi Alex, I'm calling about my 2021 Keystone Cougar. I'm having issues with my slide-out.
-
-Agent: I'm sorry to hear that. Can you describe what's happening with the slide-out?
-
-Customer: When I try to extend it, it makes a grinding noise and only goes about halfway out.
-
-Agent: That does sound like it could be an issue with the slide-out motor or possibly the gear mechanism. Have you noticed any debris or obstructions in the track?
-
-Customer: I checked and the track looks clear.
-
-Agent: Alright, I'd recommend bringing it in for a diagnostic. We can get you scheduled as early as next Tuesday. Would that work for you?
-
-Customer: Yes, Tuesday works great.
-
-Agent: Perfect. I've got you scheduled for Tuesday at 9 AM. Is there anything else I can help with?
-
-Customer: No, that's all. Thank you!
-
-Agent: You're welcome. We'll see you Tuesday. Have a great day!`,
+  "CALL-000001": detailedTranscripts["CALL-000001"].segments.map(s => 
+    s.speaker === "system" ? `[System] ${s.text}` : `${s.speaker === "agent" ? "Agent" : "Customer"}: ${s.text}`
+  ).join("\n\n"),
+  "CALL-000002": detailedTranscripts["CALL-000002"].segments.map(s => 
+    s.speaker === "system" ? `[System] ${s.text}` : `${s.speaker === "agent" ? "Agent" : "Customer"}: ${s.text}`
+  ).join("\n\n"),
 };

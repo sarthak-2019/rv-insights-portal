@@ -15,6 +15,7 @@ import AIPredictive from "./pages/AIPredictive";
 import AIPerformance from "./pages/AIPerformance";
 import Vendors from "./pages/Vendors";
 import Escalations from "./pages/Escalations";
+import AutoEmail from "./pages/AutoEmail";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/escalations" element={<Escalations />} />
           <Route path="/team" element={<Team />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/auto-email" element={<AutoEmail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
