@@ -8,13 +8,13 @@ import CallLogs from "./pages/CallLogs";
 import Companies from "./pages/Companies";
 import Transcripts from "./pages/Transcripts";
 import Analytics from "./pages/Analytics";
+import Team from "./pages/Team";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
 import AIPredictive from "./pages/AIPredictive";
 import AIPerformance from "./pages/AIPerformance";
 import Vendors from "./pages/Vendors";
 import Escalations from "./pages/Escalations";
-import Team from "./pages/Team";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
