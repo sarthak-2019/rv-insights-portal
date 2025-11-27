@@ -8,9 +8,12 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   Users,
   BarChart3,
+  Brain,
+  Target,
+  Package,
+  AlertTriangle,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
@@ -20,10 +23,14 @@ interface SidebarProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Phone, label: "Call Logs", path: "/calls" },
+  { icon: Phone, label: "Call Logs", path: "/call-logs" },
   { icon: Building2, label: "Companies", path: "/companies" },
   { icon: FileText, label: "Transcripts", path: "/transcripts" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
+  { icon: Brain, label: "AI Predictive", path: "/ai-predictive" },
+  { icon: Target, label: "AI Performance", path: "/ai-performance" },
+  { icon: Package, label: "Vendors", path: "/vendors" },
+  { icon: AlertTriangle, label: "Escalations", path: "/escalations" },
   { icon: Users, label: "Team", path: "/team" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];

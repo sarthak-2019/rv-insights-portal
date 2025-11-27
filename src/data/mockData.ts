@@ -194,6 +194,395 @@ export const dashboardStats = {
   serviceCompanies: companies.filter(c => c.type === "service").length,
 };
 
+// AI Performance Metrics
+export interface AIMetrics {
+  resolutionAccuracy: number;
+  escalationRate: number;
+  avgConfidenceScore: number;
+  sentimentPositive: number;
+  sentimentNeutral: number;
+  sentimentNegative: number;
+  topErrorTypes: { type: string; count: number; percentage: number }[];
+  monthlyTrend: { month: string; accuracy: number; escalations: number }[];
+}
+
+export const aiMetrics: AIMetrics = {
+  resolutionAccuracy: 94.3,
+  escalationRate: 5.7,
+  avgConfidenceScore: 89.2,
+  sentimentPositive: 72,
+  sentimentNeutral: 21,
+  sentimentNegative: 7,
+  topErrorTypes: [
+    { type: "Complex Technical Issue", count: 156, percentage: 42 },
+    { type: "Missing Part Information", count: 98, percentage: 26 },
+    { type: "Warranty Clarification Needed", count: 67, percentage: 18 },
+    { type: "Customer Request for Human", count: 52, percentage: 14 },
+  ],
+  monthlyTrend: [
+    { month: "Jan", accuracy: 89.5, escalations: 8.2 },
+    { month: "Feb", accuracy: 91.2, escalations: 7.5 },
+    { month: "Mar", accuracy: 92.8, escalations: 6.8 },
+    { month: "Apr", accuracy: 93.5, escalations: 6.2 },
+    { month: "May", accuracy: 94.3, escalations: 5.7 },
+  ],
+};
+
+// Predictive Analytics
+export interface PredictiveAlert {
+  id: string;
+  severity: "high" | "medium" | "low";
+  category: string;
+  prediction: string;
+  affectedModels: string[];
+  confidence: number;
+  estimatedImpact: string;
+  timeline: string;
+  trend: "increasing" | "stable" | "decreasing";
+}
+
+export const predictiveAlerts: PredictiveAlert[] = [
+  {
+    id: "pred-1",
+    severity: "high",
+    category: "Electrical",
+    prediction: "Firefly Integrations failure rate expected to increase 43% in next 60 days",
+    affectedModels: ["Jayco 2023 Models", "Grand Design Momentum", "Forest River Cherokee"],
+    confidence: 91,
+    estimatedImpact: "~850 additional service calls",
+    timeline: "Next 60 days",
+    trend: "increasing",
+  },
+  {
+    id: "pred-2",
+    severity: "high",
+    category: "HVAC",
+    prediction: "Dometic AC compressor failures trending up across all 2022-2023 models",
+    affectedModels: ["Keystone Montana", "Thor Venetian", "Winnebago Vista"],
+    confidence: 87,
+    estimatedImpact: "~620 warranty claims",
+    timeline: "Next 90 days",
+    trend: "increasing",
+  },
+  {
+    id: "pred-3",
+    severity: "medium",
+    category: "Plumbing",
+    prediction: "Water pump seal failures expected in high-humidity regions",
+    affectedModels: ["Dutchmen Voltage", "Alliance RV Paradigm"],
+    confidence: 78,
+    estimatedImpact: "~340 service appointments",
+    timeline: "Summer season",
+    trend: "stable",
+  },
+  {
+    id: "pred-4",
+    severity: "medium",
+    category: "Chassis",
+    prediction: "Lippert slide mechanism wear patterns indicate service needs",
+    affectedModels: ["Grand Design Solitude", "Jayco North Point"],
+    confidence: 82,
+    estimatedImpact: "~290 maintenance visits",
+    timeline: "Next 45 days",
+    trend: "increasing",
+  },
+  {
+    id: "pred-5",
+    severity: "low",
+    category: "Appliances",
+    prediction: "Refrigerator cooling efficiency declining in older units",
+    affectedModels: ["2020-2021 Models across brands"],
+    confidence: 73,
+    estimatedImpact: "~180 service calls",
+    timeline: "Ongoing",
+    trend: "stable",
+  },
+];
+
+// Component Vendor Performance
+export interface VendorPerformance {
+  id: string;
+  vendor: string;
+  category: string;
+  totalUnits: number;
+  failureRate: number;
+  avgRepairTime: string;
+  warrantyClaims: number;
+  customerSatisfaction: number;
+  trend: "up" | "down" | "stable";
+  topIssues: string[];
+}
+
+export const vendorPerformance: VendorPerformance[] = [
+  {
+    id: "v-1",
+    vendor: "Lippert Components",
+    category: "Chassis & Slide Systems",
+    totalUnits: 12450,
+    failureRate: 8.3,
+    avgRepairTime: "3.2 hours",
+    warrantyClaims: 1034,
+    customerSatisfaction: 3.8,
+    trend: "down",
+    topIssues: ["Slide mechanism binding", "Leveling jack hydraulics", "Frame alignment"],
+  },
+  {
+    id: "v-2",
+    vendor: "Dometic",
+    category: "HVAC & Appliances",
+    totalUnits: 18920,
+    failureRate: 12.7,
+    avgRepairTime: "2.8 hours",
+    warrantyClaims: 2403,
+    customerSatisfaction: 3.2,
+    trend: "down",
+    topIssues: ["AC compressor failure", "Refrigerator cooling loss", "Thermostat issues"],
+  },
+  {
+    id: "v-3",
+    vendor: "Firefly Integrations",
+    category: "Electrical Systems",
+    totalUnits: 8650,
+    failureRate: 15.2,
+    avgRepairTime: "4.5 hours",
+    warrantyClaims: 1315,
+    customerSatisfaction: 2.9,
+    trend: "down",
+    topIssues: ["Control panel failures", "Battery management", "Solar integration"],
+  },
+  {
+    id: "v-4",
+    vendor: "Furrion",
+    category: "Electronics & Entertainment",
+    totalUnits: 15230,
+    failureRate: 6.1,
+    avgRepairTime: "1.9 hours",
+    warrantyClaims: 929,
+    customerSatisfaction: 4.2,
+    trend: "stable",
+    topIssues: ["Camera system connectivity", "Audio system", "Display issues"],
+  },
+  {
+    id: "v-5",
+    vendor: "Truma",
+    category: "Heating & Water",
+    totalUnits: 9870,
+    failureRate: 4.8,
+    avgRepairTime: "2.1 hours",
+    warrantyClaims: 474,
+    customerSatisfaction: 4.5,
+    trend: "up",
+    topIssues: ["Ignition system", "Water heater efficiency", "Thermostat calibration"],
+  },
+  {
+    id: "v-6",
+    vendor: "Winegard",
+    category: "Satellite & Antenna",
+    totalUnits: 11450,
+    failureRate: 7.2,
+    avgRepairTime: "1.5 hours",
+    warrantyClaims: 824,
+    customerSatisfaction: 4.0,
+    trend: "stable",
+    topIssues: ["Motor mechanism", "Signal reception", "Weather damage"],
+  },
+];
+
+// Escalation Data
+export interface EscalationData {
+  id: string;
+  callId: string;
+  customerName: string;
+  company: string;
+  reason: string;
+  aiConfidence: number;
+  escalatedAt: string;
+  resolvedBy: string;
+  resolutionTime: string;
+  outcome: "resolved" | "pending" | "returned-to-ai";
+  tags: string[];
+}
+
+export const escalations: EscalationData[] = [
+  {
+    id: "esc-1",
+    callId: "CL-2401",
+    customerName: "Michael Thompson",
+    company: "Camping World",
+    reason: "Complex warranty coverage question",
+    aiConfidence: 62,
+    escalatedAt: "2024-05-15 14:23",
+    resolvedBy: "Sarah Johnson",
+    resolutionTime: "18 mins",
+    outcome: "resolved",
+    tags: ["warranty", "policy-clarification"],
+  },
+  {
+    id: "esc-2",
+    callId: "CL-2398",
+    customerName: "Jennifer White",
+    company: "Jayco Inc",
+    reason: "Customer requested human agent",
+    aiConfidence: 85,
+    escalatedAt: "2024-05-15 13:45",
+    resolvedBy: "Marcus Chen",
+    resolutionTime: "12 mins",
+    outcome: "resolved",
+    tags: ["customer-preference", "high-confidence"],
+  },
+  {
+    id: "esc-3",
+    callId: "CL-2389",
+    customerName: "David Rodriguez",
+    company: "Lazy Days RV",
+    reason: "Missing technical specifications",
+    aiConfidence: 45,
+    escalatedAt: "2024-05-15 11:32",
+    resolvedBy: "Tech Team",
+    resolutionTime: "45 mins",
+    outcome: "resolved",
+    tags: ["technical", "parts-database"],
+  },
+  {
+    id: "esc-4",
+    callId: "CL-2376",
+    customerName: "Lisa Anderson",
+    company: "Thor Industries",
+    reason: "Multiple interconnected issues",
+    aiConfidence: 58,
+    escalatedAt: "2024-05-15 09:15",
+    resolvedBy: "James Wilson",
+    resolutionTime: "32 mins",
+    outcome: "resolved",
+    tags: ["complex", "multiple-systems"],
+  },
+  {
+    id: "esc-5",
+    callId: "CL-2365",
+    customerName: "Robert Martinez",
+    company: "Keystone RV",
+    reason: "AI uncertainty on repair approach",
+    aiConfidence: 51,
+    escalatedAt: "2024-05-14 16:50",
+    resolvedBy: "Pending",
+    resolutionTime: "-",
+    outcome: "pending",
+    tags: ["low-confidence", "repair-method"],
+  },
+];
+
+// Repair Issues Heatmap
+export interface RepairIssue {
+  category: string;
+  issue: string;
+  count: number;
+  severity: "critical" | "high" | "medium" | "low";
+  trend: number;
+  topModels: string[];
+}
+
+export const repairIssues: RepairIssue[] = [
+  { category: "Electrical", issue: "Firefly Control Panel", count: 287, severity: "critical", trend: 43, topModels: ["Jayco 2023", "Grand Design"] },
+  { category: "HVAC", issue: "Dometic AC Compressor", count: 243, severity: "critical", trend: 38, topModels: ["Thor Venetian", "Keystone Montana"] },
+  { category: "Plumbing", issue: "Water Pump Failure", count: 156, severity: "high", trend: -12, topModels: ["Forest River", "Dutchmen"] },
+  { category: "Chassis", issue: "Lippert Slide Issues", count: 198, severity: "high", trend: 25, topModels: ["Grand Design Solitude", "Jayco North Point"] },
+  { category: "Appliances", issue: "Refrigerator Cooling", count: 134, severity: "medium", trend: 8, topModels: ["Various 2020-2021 Models"] },
+  { category: "Electronics", issue: "Camera System", count: 92, severity: "medium", trend: -5, topModels: ["Furrion equipped models"] },
+  { category: "Electrical", issue: "Battery Management", count: 167, severity: "high", trend: 31, topModels: ["Lithium models 2023"] },
+  { category: "HVAC", issue: "Furnace Ignition", count: 78, severity: "medium", trend: 2, topModels: ["Truma equipped"] },
+  { category: "Chassis", issue: "Leveling Jack Hydraulics", count: 112, severity: "high", trend: 18, topModels: ["Lippert equipped"] },
+  { category: "Plumbing", issue: "Water Heater", count: 89, severity: "medium", trend: -8, topModels: ["Suburban/Atwood models"] },
+];
+
+// Technician Performance
+export interface TechnicianMetrics {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  totalCalls: number;
+  resolvedCalls: number;
+  avgHandleTime: string;
+  schematicsUsed: number;
+  videosWatched: number;
+  customerRating: number;
+  specializations: string[];
+  performanceTrend: "up" | "stable" | "down";
+}
+
+export const technicianMetrics: TechnicianMetrics[] = [
+  {
+    id: "tech-1",
+    name: "Sarah Johnson",
+    role: "Senior Technician",
+    avatar: "SJ",
+    totalCalls: 324,
+    resolvedCalls: 312,
+    avgHandleTime: "14.3 mins",
+    schematicsUsed: 189,
+    videosWatched: 45,
+    customerRating: 4.8,
+    specializations: ["Electrical", "HVAC"],
+    performanceTrend: "up",
+  },
+  {
+    id: "tech-2",
+    name: "Marcus Chen",
+    role: "Lead Technician",
+    avatar: "MC",
+    totalCalls: 298,
+    resolvedCalls: 287,
+    avgHandleTime: "16.1 mins",
+    schematicsUsed: 167,
+    videosWatched: 52,
+    customerRating: 4.7,
+    specializations: ["Plumbing", "Appliances"],
+    performanceTrend: "up",
+  },
+  {
+    id: "tech-3",
+    name: "James Wilson",
+    role: "Technician",
+    avatar: "JW",
+    totalCalls: 267,
+    resolvedCalls: 251,
+    avgHandleTime: "18.5 mins",
+    schematicsUsed: 142,
+    videosWatched: 38,
+    customerRating: 4.5,
+    specializations: ["Chassis", "Electrical"],
+    performanceTrend: "stable",
+  },
+  {
+    id: "tech-4",
+    name: "Emily Rodriguez",
+    role: "Technician",
+    avatar: "ER",
+    totalCalls: 245,
+    resolvedCalls: 234,
+    avgHandleTime: "15.7 mins",
+    schematicsUsed: 156,
+    videosWatched: 61,
+    customerRating: 4.9,
+    specializations: ["Electronics", "HVAC"],
+    performanceTrend: "up",
+  },
+  {
+    id: "tech-5",
+    name: "David Kim",
+    role: "Junior Technician",
+    avatar: "DK",
+    totalCalls: 178,
+    resolvedCalls: 165,
+    avgHandleTime: "22.4 mins",
+    schematicsUsed: 98,
+    videosWatched: 74,
+    customerRating: 4.3,
+    specializations: ["Appliances"],
+    performanceTrend: "up",
+  },
+];
+
 // Sample transcripts
 export const sampleTranscripts: Record<string, string> = {
   "CALL-000001": `Agent: Thank you for calling RV Support, this is Alex. How can I help you today?
