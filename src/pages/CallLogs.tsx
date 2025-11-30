@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 export default function CallLogs() {
   const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
-  const [department, setDepartment] = useState<"all" | "retail" | "service">("all");
+  const [department, setDepartment] = useState<"all" | "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer">("all");
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");

@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
-  const [department, setDepartment] = useState<"all" | "retail" | "service">("all");
+  const [department, setDepartment] = useState<"all" | "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer">("all");
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
