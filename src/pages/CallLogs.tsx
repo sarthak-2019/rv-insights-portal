@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { CompanyFilter } from "@/components/dashboard/CompanyFilter";
-import { DepartmentToggle } from "@/components/dashboard/DepartmentToggle";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { callLogs, IssueType, CallLog, CallStatus } from "@/data/mockData";
+import { useDepartment } from "@/contexts/DepartmentContext";
 import { Search, Download, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 
 export default function CallLogs() {
   const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
-  const [department, setDepartment] = useState<"all" | "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer">("all");
+  const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +27,7 @@ export default function CallLogs() {
       if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
         return false;
       }
-      if (department !== "all" && log.department !== department) {
+      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
         return false;
       }
       if (selectedIssueTypes.length > 0 && !selectedIssueTypes.includes(log.issueType)) {
@@ -48,7 +48,7 @@ export default function CallLogs() {
       }
       return true;
     });
-  }, [selectedCompanies, department, selectedIssueTypes, selectedStatus, searchQuery]);
+  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus, searchQuery]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -61,11 +61,11 @@ export default function CallLogs() {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (selectedCompanies.length > 0) count++;
-    if (department !== "all") count++;
+    if (selectedDepartment !== "all") count++;
     if (selectedIssueTypes.length > 0) count++;
     if (selectedStatus !== "all") count++;
     return count;
-  }, [selectedCompanies, department, selectedIssueTypes, selectedStatus]);
+  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus]);
 
   return (
     <MainLayout>
@@ -118,7 +118,6 @@ export default function CallLogs() {
                 selectedCompanies={selectedCompanies}
                 onSelectionChange={setSelectedCompanies}
               />
-              <DepartmentToggle selected={department} onChange={setDepartment} />
             </div>
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

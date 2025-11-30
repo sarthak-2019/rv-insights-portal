@@ -2,12 +2,12 @@ import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { CompanyFilter } from "@/components/dashboard/CompanyFilter";
-import { DepartmentToggle } from "@/components/dashboard/DepartmentToggle";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { callLogs, dashboardStats, IssueType, CallLog } from "@/data/mockData";
+import { useDepartment } from "@/contexts/DepartmentContext";
 import {
   Phone,
   CheckCircle,
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
-  const [department, setDepartment] = useState<"all" | "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer">("all");
+  const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
@@ -36,7 +36,7 @@ export default function Dashboard() {
       }
       
       // Department filter
-      if (department !== "all" && log.department !== department) {
+      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
         return false;
       }
       
@@ -58,7 +58,7 @@ export default function Dashboard() {
       
       return true;
     });
-  }, [selectedCompanies, department, selectedIssueTypes, searchQuery]);
+  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -89,7 +89,6 @@ export default function Dashboard() {
               Unified dashboard for {dashboardStats.totalCompanies} companies
             </p>
           </div>
-          <DepartmentToggle selected={department} onChange={setDepartment} />
         </div>
 
         {/* Stats Grid */}
