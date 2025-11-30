@@ -7,14 +7,14 @@ export const companies = [
   { id: 5, name: "MHSRV", type: "retail", region: "Texas" },
   { id: 6, name: "Keystone RV", type: "service", region: "Indiana" },
   { id: 7, name: "Jacyco RV", type: "service", region: "National" },
-  { id: 8, name: "Thor Industries", type: "retail", region: "Indiana" },
-  { id: 9, name: "Winnebago", type: "retail", region: "Iowa" },
-  { id: 10, name: "Forest River", type: "service", region: "Indiana" },
+  { id: 8, name: "Thor Industries", type: "manufacturer", region: "Indiana" },
+  { id: 9, name: "Winnebago", type: "manufacturer", region: "Iowa" },
+  { id: 10, name: "Forest River", type: "manufacturer", region: "Indiana" },
   { id: 11, name: "Airstream", type: "retail", region: "Ohio" },
   { id: 12, name: "Coachmen RV", type: "service", region: "Indiana" },
-  { id: 13, name: "Jayco", type: "retail", region: "Indiana" },
+  { id: 13, name: "Jayco", type: "manufacturer", region: "Indiana" },
   { id: 14, name: "Grand Design RV", type: "retail", region: "Indiana" },
-  { id: 15, name: "Newmar Corporation", type: "service", region: "Indiana" },
+  { id: 15, name: "Newmar Corporation", type: "manufacturer", region: "Indiana" },
   { id: 16, name: "Tiffin Motorhomes", type: "service", region: "Alabama" },
   { id: 17, name: "American Coach", type: "retail", region: "Indiana" },
   { id: 18, name: "Fleetwood RV", type: "service", region: "Indiana" },
@@ -23,9 +23,9 @@ export const companies = [
   { id: 21, name: "Entegra Coach", type: "retail", region: "Indiana" },
   { id: 22, name: "DRV Luxury Suites", type: "service", region: "Indiana" },
   { id: 23, name: "Heartland RV", type: "retail", region: "Indiana" },
-  { id: 24, name: "Highland Ridge RV", type: "service", region: "Indiana" },
+  { id: 24, name: "Highland Ridge RV", type: "maintenance", region: "Indiana" },
   { id: 25, name: "CrossRoads RV", type: "retail", region: "Indiana" },
-  { id: 26, name: "Prime Time Manufacturing", type: "service", region: "Indiana" },
+  { id: 26, name: "Prime Time Manufacturing", type: "maintenance", region: "Indiana" },
   { id: 27, name: "Palomino RV", type: "retail", region: "Indiana" },
   { id: 28, name: "Dutchmen RV", type: "service", region: "Indiana" },
   { id: 29, name: "Starcraft RV", type: "retail", region: "Indiana" },
@@ -34,16 +34,16 @@ export const companies = [
   { id: 32, name: "Cruiser RV", type: "service", region: "Indiana" },
   { id: 33, name: "Gulf Stream Coach", type: "retail", region: "Indiana" },
   { id: 34, name: "Lance Campers", type: "service", region: "California" },
-  { id: 35, name: "Northwood Manufacturing", type: "retail", region: "Oregon" },
+  { id: 35, name: "Northwood Manufacturing", type: "manufacturer", region: "Oregon" },
   { id: 36, name: "Oliver Travel Trailers", type: "service", region: "Tennessee" },
   { id: 37, name: "Pleasure-Way Industries", type: "retail", region: "Canada" },
   { id: 38, name: "Roadtrek", type: "service", region: "Canada" },
   { id: 39, name: "Leisure Travel Vans", type: "retail", region: "Canada" },
-  { id: 40, name: "Renegade RV", type: "service", region: "Minnesota" },
+  { id: 40, name: "Renegade RV", type: "maintenance", region: "Minnesota" },
   { id: 41, name: "NeXus RV", type: "retail", region: "Indiana" },
   { id: 42, name: "Phoenix USA RV", type: "service", region: "Indiana" },
   { id: 43, name: "Dynamax Corporation", type: "retail", region: "Indiana" },
-  { id: 44, name: "Midwest Automotive Designs", type: "service", region: "Indiana" },
+  { id: 44, name: "Midwest Automotive Designs", type: "maintenance", region: "Indiana" },
   { id: 45, name: "Regency RV", type: "retail", region: "Nevada" },
   { id: 46, name: "Chinook RV", type: "service", region: "Washington" },
   { id: 47, name: "Escape Trailer Industries", type: "retail", region: "Canada" },
@@ -61,6 +61,11 @@ export const companies = [
   { id: 59, name: "Escape POD", type: "retail", region: "Canada" },
   { id: 60, name: "Opus Camper", type: "service", region: "California" },
   { id: 61, name: "Black Series Camper", type: "retail", region: "California" },
+  { id: 62, name: "RV Compliance Solutions", type: "compliance", region: "National" },
+  { id: 63, name: "National RV Inspections", type: "compliance", region: "National" },
+  { id: 64, name: "RV Warranty Services", type: "claims", region: "National" },
+  { id: 65, name: "Extended RV Protection", type: "claims", region: "National" },
+  { id: 66, name: "Premier RV Claims", type: "claims", region: "Texas" },
 ];
 
 export type CallStatus = "completed" | "pending" | "issue";
@@ -79,7 +84,7 @@ export interface CallLog {
   summary: string;
   hasTranscript: boolean;
   agentName: string;
-  department: "retail" | "service";
+  department: "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer";
 }
 
 const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"];
