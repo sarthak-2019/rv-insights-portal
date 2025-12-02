@@ -14,17 +14,8 @@ import {
   Package,
   AlertTriangle,
   Mail,
-  Filter,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useDepartment } from "@/contexts/DepartmentContext";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface SidebarProps {
   className?: string;
@@ -46,17 +37,6 @@ const navItems = [
 
 export function Sidebar({ className }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const { selectedDepartment, setSelectedDepartment } = useDepartment();
-
-  const departmentOptions = [
-    { value: "all", label: "All Departments" },
-    { value: "retail", label: "Retail" },
-    { value: "service", label: "Service" },
-    { value: "maintenance", label: "Maintenance" },
-    { value: "compliance", label: "Compliance" },
-    { value: "claims", label: "Claims / Warranty" },
-    { value: "manufacturer", label: "Manufacturer" },
-  ];
 
   return (
     <aside
@@ -84,33 +64,6 @@ export function Sidebar({ className }: SidebarProps) {
           )}
         </div>
 
-        {/* Department Filter */}
-        <div className="border-b border-sidebar-border px-3 py-3">
-          {!collapsed ? (
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="h-9 bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {departmentOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <button
-              className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-sidebar-accent"
-              title="Department Filter"
-            >
-              <Filter className="h-5 w-5 text-sidebar-foreground" />
-            </button>
-          )}
-        </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4">
