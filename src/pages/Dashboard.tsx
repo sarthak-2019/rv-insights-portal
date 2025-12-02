@@ -1,13 +1,14 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { CompanyFilter } from "@/components/dashboard/CompanyFilter";
+import { FilterHeader } from "@/components/common/FilterHeader";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { callLogs, dashboardStats, IssueType, CallLog } from "@/data/mockData";
+import { callLogs, companies, dashboardStats, IssueType, CallLog } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
+import { useFilters } from "@/contexts/FilterContext";
 import {
   Phone,
   CheckCircle,
@@ -20,13 +21,13 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
-  const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
   const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "all">("week");
+  const [quickDateFilter, setQuickDateFilter] = useState<"today" | "week" | "month" | "all">("week");
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
@@ -122,44 +123,49 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Filters Section */}
+        {/* Filter Header */}
+        <FilterHeader
+          selectedCompanies={selectedCompanies}
+          onCompaniesChange={setSelectedCompanies}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          companies={companies}
+        />
+
+        {/* Additional Filters */}
         <div className="rounded-xl border border-border bg-card p-4 animate-fade-in">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-center gap-2">
-                <CompanyFilter
-                  selectedCompanies={selectedCompanies}
-                  onSelectionChange={setSelectedCompanies}
-                />
                 <div className="flex gap-1 bg-muted rounded-lg p-1">
                   <button
-                    onClick={() => setDateRange("today")}
+                    onClick={() => setQuickDateFilter("today")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      dateRange === "today" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "today" ? "bg-background shadow-sm" : "hover:bg-background/50"
                     }`}
                   >
                     Today
                   </button>
                   <button
-                    onClick={() => setDateRange("week")}
+                    onClick={() => setQuickDateFilter("week")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      dateRange === "week" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "week" ? "bg-background shadow-sm" : "hover:bg-background/50"
                     }`}
                   >
                     Week
                   </button>
                   <button
-                    onClick={() => setDateRange("month")}
+                    onClick={() => setQuickDateFilter("month")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      dateRange === "month" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "month" ? "bg-background shadow-sm" : "hover:bg-background/50"
                     }`}
                   >
                     Month
                   </button>
                   <button
-                    onClick={() => setDateRange("all")}
+                    onClick={() => setQuickDateFilter("all")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      dateRange === "all" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "all" ? "bg-background shadow-sm" : "hover:bg-background/50"
                     }`}
                   >
                     All Time

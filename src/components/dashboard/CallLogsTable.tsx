@@ -51,6 +51,7 @@ export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
               <TableHead className="w-[120px]">Call ID</TableHead>
               <TableHead>Company</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>VIN</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Type</TableHead>
@@ -90,6 +91,11 @@ export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
                       {log.phoneNumber}
                     </span>
                   </div>
+                </TableCell>
+                <TableCell>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {log.vin || "N/A"}
+                  </span>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{log.date}</TableCell>
                 <TableCell>

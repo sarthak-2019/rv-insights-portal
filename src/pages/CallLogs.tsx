@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { CompanyFilter } from "@/components/dashboard/CompanyFilter";
+import { FilterHeader } from "@/components/common/FilterHeader";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
-import { callLogs, IssueType, CallLog, CallStatus } from "@/data/mockData";
+import { callLogs, companies, IssueType, CallLog, CallStatus } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
+import { useFilters } from "@/contexts/FilterContext";
 import { Search, Download, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export default function CallLogs() {
-  const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
   const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">("all");
@@ -99,6 +100,15 @@ export default function CallLogs() {
           </div>
         </div>
 
+        {/* Filter Header */}
+        <FilterHeader
+          selectedCompanies={selectedCompanies}
+          onCompaniesChange={setSelectedCompanies}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          companies={companies}
+        />
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -110,15 +120,9 @@ export default function CallLogs() {
           />
         </div>
 
-        {/* Filters */}
+        {/* Additional Filters */}
         {showFilters && (
           <div className="rounded-xl border border-border bg-card p-4 animate-fade-in space-y-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <CompanyFilter
-                selectedCompanies={selectedCompanies}
-                onSelectionChange={setSelectedCompanies}
-              />
-            </div>
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-2">
