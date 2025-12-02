@@ -44,7 +44,8 @@ export default function CallLogs() {
           log.companyName.toLowerCase().includes(query) ||
           log.id.toLowerCase().includes(query) ||
           log.summary.toLowerCase().includes(query) ||
-          log.agentName.toLowerCase().includes(query)
+          log.agentName.toLowerCase().includes(query) ||
+          (log.vin && log.vin.toLowerCase().includes(query))
         );
       }
       return true;
@@ -113,7 +114,7 @@ export default function CallLogs() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by customer, company, call ID, agent, or summary..."
+            placeholder="Search by customer, company, call ID, VIN, agent, or summary..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
