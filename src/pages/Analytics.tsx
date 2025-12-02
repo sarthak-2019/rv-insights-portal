@@ -87,24 +87,39 @@ export default function Analytics() {
     }));
   }, [filteredLogs]);
 
-  // Status distribution
+  // Filtered stats based on department/company selection
+  const filteredStats = useMemo(() => {
+    const completed = filteredLogs.filter(log => log.status === "completed").length;
+    const pending = filteredLogs.filter(log => log.status === "pending").length;
+    const issues = filteredLogs.filter(log => log.status === "issue").length;
+    return {
+      total: filteredLogs.length,
+      completed,
+      pending,
+      issues,
+      avgDuration: filteredLogs.length > 0 ? "4:32" : "0:00",
+    };
+  }, [filteredLogs]);
+
+  // Status distribution - now uses filtered data
   const statusData = useMemo(() => {
     return [
-      { name: "Completed", value: dashboardStats.completedCalls, color: "hsl(142, 76%, 36%)" },
-      { name: "Pending", value: dashboardStats.pendingCalls, color: "hsl(38, 92%, 50%)" },
-      { name: "Issues", value: dashboardStats.issues, color: "hsl(0, 84%, 60%)" },
+      { name: "Completed", value: filteredStats.completed, color: "hsl(142, 76%, 36%)" },
+      { name: "Pending", value: filteredStats.pending, color: "hsl(38, 92%, 50%)" },
+      { name: "Issues", value: filteredStats.issues, color: "hsl(0, 84%, 60%)" },
     ];
-  }, []);
+  }, [filteredStats]);
 
-  // Mock daily calls trend
+  // Mock daily calls trend - varies by department
   const dailyTrendData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    return days.map((day) => ({
+    const baseMultiplier = filteredLogs.length > 0 ? filteredLogs.length / callLogs.length : 1;
+    return days.map((day, idx) => ({
       name: day,
-      calls: Math.floor(Math.random() * 50) + 30,
-      completed: Math.floor(Math.random() * 40) + 20,
+      calls: Math.floor((30 + idx * 5) * baseMultiplier),
+      completed: Math.floor((20 + idx * 4) * baseMultiplier),
     }));
-  }, []);
+  }, [filteredLogs.length]);
 
   const COLORS = ["hsl(217, 91%, 60%)", "hsl(173, 80%, 40%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 60%)", "hsl(280, 65%, 60%)"];
 
@@ -132,26 +147,26 @@ export default function Analytics() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Calls"
-            value={dashboardStats.totalCalls.toLocaleString()}
+            value={filteredStats.total.toLocaleString()}
             icon={Phone}
             trend={{ value: 12, isPositive: true }}
             variant="primary"
           />
           <StatCard
             title="Avg Duration"
-            value={dashboardStats.avgDuration}
+            value={filteredStats.avgDuration}
             icon={Clock}
             variant="default"
           />
           <StatCard
             title="Active Companies"
-            value={dashboardStats.totalCompanies}
+            value={new Set(filteredLogs.map(l => l.companyId)).size}
             icon={Building2}
             variant="default"
           />
           <StatCard
             title="Success Rate"
-            value={`${Math.round((dashboardStats.completedCalls / dashboardStats.totalCalls) * 100)}%`}
+            value={filteredStats.total > 0 ? `${Math.round((filteredStats.completed / filteredStats.total) * 100)}%` : "0%"}
             icon={TrendingUp}
             trend={{ value: 5, isPositive: true }}
             variant="success"
@@ -345,7 +360,7 @@ export default function Analytics() {
                 <div className="text-right">
                   <p className="text-2xl font-bold">{dept.value.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">
-                    {((dept.value / dashboardStats.totalCalls) * 100).toFixed(1)}% of total
+                    {filteredStats.total > 0 ? ((dept.value / filteredStats.total) * 100).toFixed(1) : 0}% of total
                   </p>
                 </div>
               </div>
