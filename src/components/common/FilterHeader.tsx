@@ -16,7 +16,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useDepartment } from "@/contexts/DepartmentContext";
+import { useDepartment, DepartmentType } from "@/contexts/DepartmentContext";
 
 interface FilterHeaderProps {
   selectedCompanies: number[];
@@ -33,7 +33,7 @@ export function FilterHeader({
   onDateRangeChange,
   companies,
 }: FilterHeaderProps) {
-  const { selectedDepartment } = useDepartment();
+  const { selectedDepartment, setSelectedDepartment } = useDepartment();
   const [showCompanySelect, setShowCompanySelect] = useState(false);
 
   const handleCompanyToggle = (companyId: number) => {
@@ -105,12 +105,23 @@ export function FilterHeader({
           </Popover>
         </div>
 
-        {/* Department Display (read-only from context) */}
+        {/* Department Filter */}
         <div className="flex flex-col gap-2 flex-1">
           <span className="text-sm font-medium text-muted-foreground">Department</span>
-          <div className="h-10 px-3 flex items-center rounded-md border border-border bg-muted/50 text-sm capitalize">
-            {selectedDepartment === "all" ? "All Departments" : selectedDepartment}
-          </div>
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="h-10 w-full lg:w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              <SelectItem value="retail">Retail</SelectItem>
+              <SelectItem value="service">Service</SelectItem>
+              <SelectItem value="maintenance">Maintenance</SelectItem>
+              <SelectItem value="compliance">Compliance</SelectItem>
+              <SelectItem value="claims">Claims / Warranty</SelectItem>
+              <SelectItem value="manufacturer">Manufacturer</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Date Range Filter */}
