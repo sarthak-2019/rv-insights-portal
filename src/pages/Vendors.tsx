@@ -1,5 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import { vendorPerformance } from "@/data/mockData";
+import { vendorPerformance, companies } from "@/data/mockData";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,9 +7,14 @@ import { TrendingUp, TrendingDown, Minus, Package, Clock, AlertTriangle, Star } 
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { FilterHeader } from "@/components/common/FilterHeader";
+import { useFilters } from "@/contexts/FilterContext";
+import { useDepartment } from "@/contexts/DepartmentContext";
 
 export default function Vendors() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedDepartment } = useDepartment();
 
   const filteredVendors = vendorPerformance.filter(vendor =>
     vendor.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,6 +68,15 @@ export default function Vendors() {
             />
           </div>
         </div>
+
+        {/* Filter Header */}
+        <FilterHeader
+          selectedCompanies={selectedCompanies}
+          onCompaniesChange={setSelectedCompanies}
+          companies={companies}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
 
         {/* Summary Stats */}
         <div className="grid gap-4 sm:grid-cols-3">

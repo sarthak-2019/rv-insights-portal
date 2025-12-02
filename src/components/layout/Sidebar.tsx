@@ -31,8 +31,8 @@ const navItems = [
   { icon: Package, label: "Vendors", path: "/vendors" },
   { icon: AlertTriangle, label: "Escalations", path: "/escalations" },
   { icon: Users, label: "Team", path: "/team" },
-  { icon: Settings, label: "Settings", path: "/settings" },
   { icon: Mail, label: "Auto-Email", path: "/auto-email" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 export function Sidebar({ className }: SidebarProps) {

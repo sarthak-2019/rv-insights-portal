@@ -1,23 +1,41 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import { escalations } from "@/data/mockData";
+import { escalations, companies } from "@/data/mockData";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Clock, CheckCircle, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterHeader } from "@/components/common/FilterHeader";
+import { useFilters } from "@/contexts/FilterContext";
+import { useDepartment } from "@/contexts/DepartmentContext";
 
 export default function Escalations() {
   const [outcomeFilter, setOutcomeFilter] = useState<string>("all");
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedDepartment } = useDepartment();
 
-  const filteredEscalations = escalations.filter(esc => 
-    outcomeFilter === "all" || esc.outcome === outcomeFilter
-  );
+  const filteredEscalations = useMemo(() => {
+    return escalations.filter(esc => {
+      // Filter by outcome
+      if (outcomeFilter !== "all" && esc.outcome !== outcomeFilter) return false;
+      
+      // Filter by company
+      if (selectedCompanies.length > 0) {
+        const companyMatch = companies.find(c => c.name === esc.company);
+        if (!companyMatch || !selectedCompanies.includes(companyMatch.id)) return false;
+      }
+      
+      return true;
+    });
+  }, [outcomeFilter, selectedCompanies]);
 
-  const resolvedCount = escalations.filter(e => e.outcome === "resolved").length;
-  const pendingCount = escalations.filter(e => e.outcome === "pending").length;
-  const avgConfidence = (escalations.reduce((acc, e) => acc + e.aiConfidence, 0) / escalations.length).toFixed(1);
+  const resolvedCount = filteredEscalations.filter(e => e.outcome === "resolved").length;
+  const pendingCount = filteredEscalations.filter(e => e.outcome === "pending").length;
+  const avgConfidence = filteredEscalations.length > 0 
+    ? (filteredEscalations.reduce((acc, e) => acc + e.aiConfidence, 0) / filteredEscalations.length).toFixed(1)
+    : "0";
 
   const getOutcomeIcon = (outcome: string) => {
     switch (outcome) {
@@ -55,6 +73,15 @@ export default function Escalations() {
             Monitor and analyze escalations to improve AI performance
           </p>
         </div>
+
+        {/* Filter Header */}
+        <FilterHeader
+          selectedCompanies={selectedCompanies}
+          onCompaniesChange={setSelectedCompanies}
+          companies={companies}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
 
         {/* Summary Cards */}
         <div className="grid gap-4 sm:grid-cols-3">
