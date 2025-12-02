@@ -1,9 +1,12 @@
 import { useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { FilterHeader } from "@/components/common/FilterHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { dashboardStats, callLogs, companies, repairIssues } from "@/data/mockData";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { useDepartment } from "@/contexts/DepartmentContext";
+import { useFilters } from "@/contexts/FilterContext";
 import {
   BarChart,
   Bar,
@@ -28,22 +31,38 @@ import {
 } from "lucide-react";
 
 export default function Analytics() {
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedDepartment } = useDepartment();
+
+  // Filter logs based on selections
+  const filteredLogs = useMemo(() => {
+    return callLogs.filter((log) => {
+      if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
+        return false;
+      }
+      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
+        return false;
+      }
+      return true;
+    });
+  }, [selectedCompanies, selectedDepartment]);
+
   // Issue type distribution
   const issueTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
-    callLogs.forEach((log) => {
+    filteredLogs.forEach((log) => {
       counts[log.issueType] = (counts[log.issueType] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
     }));
-  }, []);
+  }, [filteredLogs]);
 
   // Top companies by call volume
   const topCompaniesData = useMemo(() => {
     const counts: Record<number, number> = {};
-    callLogs.forEach((log) => {
+    filteredLogs.forEach((log) => {
       counts[log.companyId] = (counts[log.companyId] || 0) + 1;
     });
     
@@ -54,17 +73,19 @@ export default function Analytics() {
       }))
       .sort((a, b) => b.calls - a.calls)
       .slice(0, 10);
-  }, []);
+  }, [filteredLogs]);
 
   // Calls by department
   const departmentData = useMemo(() => {
-    const retail = callLogs.filter((l) => l.department === "retail").length;
-    const service = callLogs.filter((l) => l.department === "service").length;
-    return [
-      { name: "Retail", value: retail },
-      { name: "Service", value: service },
-    ];
-  }, []);
+    const counts: Record<string, number> = {};
+    filteredLogs.forEach((l) => {
+      counts[l.department] = (counts[l.department] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value,
+    }));
+  }, [filteredLogs]);
 
   // Status distribution
   const statusData = useMemo(() => {
@@ -97,6 +118,15 @@ export default function Analytics() {
             Performance metrics and insights across all companies
           </p>
         </div>
+
+        {/* Filter Header */}
+        <FilterHeader
+          selectedCompanies={selectedCompanies}
+          onCompaniesChange={setSelectedCompanies}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          companies={companies}
+        />
 
         {/* Stats Row */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

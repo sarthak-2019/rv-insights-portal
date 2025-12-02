@@ -1,15 +1,15 @@
 // Mock RV Companies Data
 export const companies = [
-  { id: 1, name: "Camping World", type: "service", region: "National" },
-  { id: 2, name: "Lazy Days RV", type: "service", region: "Southeast" },
-  { id: 3, name: "General RV Center", type: "retail", region: "Midwest" },
-  { id: 4, name: "Motor Home Specialist", type: "retail", region: "Texas" },
-  { id: 5, name: "MHSRV", type: "retail", region: "Texas" },
-  { id: 6, name: "Keystone RV", type: "service", region: "Indiana" },
-  { id: 7, name: "Jacyco RV", type: "service", region: "National" },
-  { id: 8, name: "Thor Industries", type: "manufacturer", region: "Indiana" },
-  { id: 9, name: "Winnebago", type: "manufacturer", region: "Iowa" },
-  { id: 10, name: "Forest River", type: "manufacturer", region: "Indiana" },
+  { id: 1, name: "Acme RV Sales Co.", type: "service", region: "National" },
+  { id: 2, name: "Global RV Center", type: "service", region: "Southeast" },
+  { id: 3, name: "Premier Service Hub", type: "retail", region: "Midwest" },
+  { id: 4, name: "Coastal Repair Group", type: "retail", region: "Texas" },
+  { id: 5, name: "Metro RV Dealership", type: "retail", region: "Texas" },
+  { id: 6, name: "Apex Service Center", type: "service", region: "Indiana" },
+  { id: 7, name: "Summit RV Services", type: "service", region: "National" },
+  { id: 8, name: "Titan Maintenance Co.", type: "manufacturer", region: "Indiana" },
+  { id: 9, name: "Stellar Manufacturing Co.", type: "manufacturer", region: "Iowa" },
+  { id: 10, name: "Platinum Motors Inc.", type: "manufacturer", region: "Indiana" },
   { id: 11, name: "Airstream", type: "retail", region: "Ohio" },
   { id: 12, name: "Coachmen RV", type: "service", region: "Indiana" },
   { id: 13, name: "Jayco", type: "manufacturer", region: "Indiana" },
@@ -85,6 +85,7 @@ export interface CallLog {
   hasTranscript: boolean;
   agentName: string;
   department: "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer";
+  vin?: string;
 }
 
 const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"];
@@ -153,6 +154,15 @@ function randomDate(daysBack: number): string {
   return date.toISOString().split("T")[0];
 }
 
+function generateVIN(): string {
+  const chars = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789";
+  let vin = "";
+  for (let i = 0; i < 17; i++) {
+    vin += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return vin;
+}
+
 function randomElement<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -179,6 +189,7 @@ export function generateCallLogs(count: number = 500): CallLog[] {
       hasTranscript: Math.random() > 0.3,
       agentName: randomElement(agentNames),
       department: company.type as "retail" | "service",
+      vin: generateVIN(),
     });
   }
   
