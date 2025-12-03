@@ -609,6 +609,75 @@ export interface TranscriptSegment {
   confidence?: number;
 }
 
+// AI Audit Trail Interfaces
+export interface AIInterpretation {
+  userUtterance: string;
+  parsedIntent: string;
+  entities: string[];
+  confidence: number;
+  promptUsed?: string;
+  aiResponse: string;
+  fallbackTriggered?: boolean;
+}
+
+export interface AuditAction {
+  timestamp: string;
+  actionType: "lookup" | "create" | "update" | "api_call" | "routing" | "escalation";
+  description: string;
+  system?: string;
+  result: "success" | "failure" | "pending";
+  details?: string;
+}
+
+export interface SecurityMetadata {
+  modelVersion: string;
+  authenticationStatus: "verified" | "unverified" | "partial";
+  authMethod?: string;
+  accessLevel: string;
+  redactionApplied: boolean;
+  redactedFields?: string[];
+  processingRegion: string;
+  dataCenter: string;
+  encryptionStatus: string;
+  complianceFlags: string[];
+}
+
+export interface QualityMetrics {
+  intentClassification: string;
+  intentConfidence: number;
+  sentimentAnalysis: {
+    start: string;
+    end: string;
+    trend: "improving" | "declining" | "stable";
+  };
+  resolutionStatus: "resolved_by_ai" | "escalated" | "abandoned" | "transferred";
+  outcomeTag: string;
+  customerSatisfactionPredicted?: number;
+}
+
+export interface CallAuditTrail {
+  sessionId: string;
+  callId: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  callerIdentifier: string;
+  accountId?: string;
+  ticketId?: string;
+  channel: string;
+  agentUsed: string;
+  aiInterpretations: AIInterpretation[];
+  actions: AuditAction[];
+  security: SecurityMetadata;
+  quality: QualityMetrics;
+  changeHistory: {
+    timestamp: string;
+    changedBy: string;
+    changeType: string;
+    description: string;
+  }[];
+}
+
 export interface DetailedTranscript {
   callId: string;
   duration: string;
@@ -621,6 +690,7 @@ export interface DetailedTranscript {
     overall: "positive" | "neutral" | "negative";
     score: number;
   };
+  auditTrail?: CallAuditTrail;
 }
 
 export const detailedTranscripts: Record<string, DetailedTranscript> = {
@@ -654,7 +724,69 @@ export const detailedTranscripts: Record<string, DetailedTranscript> = {
       "Check slide-out motor and gear mechanism",
       "Send confirmation email to customer"
     ],
-    sentiment: { overall: "positive", score: 0.82 }
+    sentiment: { overall: "positive", score: 0.82 },
+    auditTrail: {
+      sessionId: "SES-2024-001234",
+      callId: "CALL-000001",
+      startTime: "2024-01-15T09:23:45Z",
+      endTime: "2024-01-15T09:32:30Z",
+      duration: "8:45",
+      callerIdentifier: "+1-555-0123",
+      accountId: "ACC-78945",
+      ticketId: "TKT-2024-5678",
+      channel: "Inbound Phone",
+      agentUsed: "AI Voice Agent v3.2.1",
+      aiInterpretations: [
+        {
+          userUtterance: "I'm calling about my 2021 Keystone Cougar. I'm having issues with my slide-out.",
+          parsedIntent: "report_mechanical_issue",
+          entities: ["year:2021", "brand:Keystone", "model:Cougar", "component:slide-out"],
+          confidence: 0.94,
+          aiResponse: "I'm sorry to hear that. Can you describe what's happening with the slide-out?",
+          fallbackTriggered: false
+        },
+        {
+          userUtterance: "When I try to extend it, it makes a grinding noise and only goes about halfway out.",
+          parsedIntent: "describe_symptom",
+          entities: ["symptom:grinding_noise", "symptom:partial_extension", "severity:moderate"],
+          confidence: 0.91,
+          aiResponse: "That does sound like it could be an issue with the slide-out motor or possibly the gear mechanism.",
+          fallbackTriggered: false
+        }
+      ],
+      actions: [
+        { timestamp: "09:24:12", actionType: "lookup", description: "Retrieved customer account #ACC-78945", system: "CRM", result: "success" },
+        { timestamp: "09:24:18", actionType: "lookup", description: "Fetched vehicle history for VIN 1KEYSTONE2021COUGAR", system: "VehicleDB", result: "success" },
+        { timestamp: "09:28:45", actionType: "lookup", description: "Checked warranty status - Active until 2026-01-15", system: "WarrantySystem", result: "success" },
+        { timestamp: "09:29:30", actionType: "create", description: "Created service ticket TKT-2024-5678", system: "ServiceNow", result: "success" },
+        { timestamp: "09:30:15", actionType: "create", description: "Scheduled appointment for Tuesday 9 AM", system: "CalendarAPI", result: "success" },
+        { timestamp: "09:31:00", actionType: "api_call", description: "Sent confirmation email to customer", system: "EmailService", result: "success" }
+      ],
+      security: {
+        modelVersion: "voice_agent_v3.2.1",
+        authenticationStatus: "verified",
+        authMethod: "Account PIN + Phone Number Match",
+        accessLevel: "standard_customer",
+        redactionApplied: true,
+        redactedFields: ["credit_card", "ssn_last4"],
+        processingRegion: "US-East",
+        dataCenter: "us-east-1",
+        encryptionStatus: "AES-256 at rest, TLS 1.3 in transit",
+        complianceFlags: ["SOC2", "PCI-DSS", "GDPR"]
+      },
+      quality: {
+        intentClassification: "mechanical_support_request",
+        intentConfidence: 0.94,
+        sentimentAnalysis: { start: "neutral", end: "positive", trend: "improving" },
+        resolutionStatus: "resolved_by_ai",
+        outcomeTag: "appointment_booked",
+        customerSatisfactionPredicted: 4.2
+      },
+      changeHistory: [
+        { timestamp: "2024-01-15T09:32:35Z", changedBy: "system", changeType: "auto_tag", description: "Applied 'slide-out-issue' tag" },
+        { timestamp: "2024-01-15T09:33:00Z", changedBy: "system", changeType: "quality_score", description: "Quality review completed - Score: 94%" }
+      ]
+    }
   },
   "CALL-000002": {
     callId: "CALL-000002",
@@ -691,7 +823,70 @@ export const detailedTranscripts: Record<string, DetailedTranscript> = {
       "Schedule technician for 8 AM appointment",
       "Send appointment confirmation"
     ],
-    sentiment: { overall: "positive", score: 0.78 }
+    sentiment: { overall: "positive", score: 0.78 },
+    auditTrail: {
+      sessionId: "SES-2024-001235",
+      callId: "CALL-000002",
+      startTime: "2024-01-15T14:05:00Z",
+      endTime: "2024-01-15T14:17:30Z",
+      duration: "12:30",
+      callerIdentifier: "+1-555-0456",
+      accountId: "ACC-12367",
+      ticketId: "TKT-2024-5679",
+      channel: "Inbound Phone",
+      agentUsed: "AI Voice Agent v3.2.1",
+      aiInterpretations: [
+        {
+          userUtterance: "I'm having a major problem with my Dometic AC unit. It's completely stopped cooling.",
+          parsedIntent: "report_hvac_issue",
+          entities: ["brand:Dometic", "component:AC_unit", "symptom:no_cooling", "urgency:high"],
+          confidence: 0.92,
+          aiResponse: "I understand how frustrating that must be, especially in this heat. Let me help you troubleshoot this.",
+          fallbackTriggered: false
+        },
+        {
+          userUtterance: "It turns on, the fan runs, but there's no cold air coming out.",
+          parsedIntent: "describe_symptom",
+          entities: ["status:fan_operational", "symptom:no_cold_air", "component:compressor_suspected"],
+          confidence: 0.89,
+          aiResponse: "Okay, that helps narrow it down. It sounds like it could be a compressor issue.",
+          fallbackTriggered: false
+        }
+      ],
+      actions: [
+        { timestamp: "14:05:15", actionType: "lookup", description: "Retrieved customer account #ACC-12367", system: "CRM", result: "success" },
+        { timestamp: "14:06:00", actionType: "lookup", description: "Fetched vehicle specs for 2022 Thor Venetian", system: "VehicleDB", result: "success" },
+        { timestamp: "14:08:30", actionType: "lookup", description: "Searched known issues database for Dometic AC", system: "KnowledgeBase", result: "success", details: "Found 23 similar cases" },
+        { timestamp: "14:12:00", actionType: "create", description: "Created priority service ticket TKT-2024-5679", system: "ServiceNow", result: "success" },
+        { timestamp: "14:13:45", actionType: "api_call", description: "Sent diagnostic video link", system: "ContentDelivery", result: "success" },
+        { timestamp: "14:15:00", actionType: "create", description: "Scheduled priority appointment for 8 AM", system: "CalendarAPI", result: "success" },
+        { timestamp: "14:16:30", actionType: "api_call", description: "Triggered warranty check workflow", system: "WarrantySystem", result: "pending" }
+      ],
+      security: {
+        modelVersion: "voice_agent_v3.2.1",
+        authenticationStatus: "verified",
+        authMethod: "Account Verification Questions",
+        accessLevel: "standard_customer",
+        redactionApplied: true,
+        redactedFields: ["payment_method", "address"],
+        processingRegion: "US-East",
+        dataCenter: "us-east-1",
+        encryptionStatus: "AES-256 at rest, TLS 1.3 in transit",
+        complianceFlags: ["SOC2", "PCI-DSS", "GDPR"]
+      },
+      quality: {
+        intentClassification: "hvac_support_urgent",
+        intentConfidence: 0.92,
+        sentimentAnalysis: { start: "negative", end: "positive", trend: "improving" },
+        resolutionStatus: "resolved_by_ai",
+        outcomeTag: "priority_appointment_booked",
+        customerSatisfactionPredicted: 4.5
+      },
+      changeHistory: [
+        { timestamp: "2024-01-15T14:17:35Z", changedBy: "system", changeType: "priority_flag", description: "Marked as priority - HVAC in summer" },
+        { timestamp: "2024-01-15T14:18:00Z", changedBy: "system", changeType: "auto_escalate", description: "Flagged for warranty team review" }
+      ]
+    }
   }
 };
 
