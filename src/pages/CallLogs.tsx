@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterHeader } from "@/components/common/FilterHeader";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
-import { callLogs, companies, IssueType, CallLog, CallStatus } from "@/data/mockData";
+import { companies, IssueType, CallLog, CallStatus } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
 import { Search, Download, Filter } from "lucide-react";
@@ -22,6 +22,64 @@ export default function CallLogs() {
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch call logs from API
+  useEffect(() => {
+    const fetchCallLogs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Convert dateRange to timestamps
+        const params = new URLSearchParams();
+        if (dateRange.from) {
+          const startTimestamp = new Date(dateRange.from).getTime();
+          params.append("startDate", startTimestamp.toString());
+        }
+        if (dateRange.to) {
+          const endTimestamp = new Date(dateRange.to).getTime();
+          params.append("endDate", endTimestamp.toString());
+        }
+
+        const url = `http://localhost:3005/get-call-list${params.toString() ? `?${params.toString()}` : ""}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        // Transform API data to match CallLog interface
+        const transformedLogs: CallLog[] = (data.data || []).map((log: any) => ({
+          id: log.id,
+          companyName: log.customerData?.companyName || "Not provided",
+          customerName: log.customerData?.customerName || "Not provided",
+          phoneNumber: log.customerData?.phoneNumber || "Not provided",
+          vin: log.customerData?.vinNumber || "Not provided",
+          duration: log.duration,
+          status: log.status === "ended" ? "completed" : log.status,
+          agentName: log.callAgent || "N/A",
+          callType: log.callType,
+          success: log.success,
+          customerData: log.customerData,
+          issueType: "general",
+          hasTranscript: false,
+          summary: `${log.customerData?.customerName || "Customer"} - ${log.customerData?.companyName || "Company"}`,
+        }));
+
+        setCallLogs(transformedLogs);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch call logs");
+        console.error("Error fetching call logs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCallLogs();
+  }, [dateRange]);
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
@@ -43,14 +101,14 @@ export default function CallLogs() {
           log.customerName.toLowerCase().includes(query) ||
           log.companyName.toLowerCase().includes(query) ||
           log.id.toLowerCase().includes(query) ||
-          log.summary.toLowerCase().includes(query) ||
+          (log.summary && log.summary.toLowerCase().includes(query)) ||
           log.agentName.toLowerCase().includes(query) ||
           (log.vin && log.vin.toLowerCase().includes(query))
         );
       }
       return true;
     });
-  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus, searchQuery]);
+  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus, searchQuery]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -101,6 +159,13 @@ export default function CallLogs() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+            <p className="text-sm font-medium">Error loading call logs: {error}</p>
+          </div>
+        )}
+
         {/* Filter Header */}
         <FilterHeader
           selectedCompanies={selectedCompanies}
@@ -124,7 +189,6 @@ export default function CallLogs() {
         {/* Additional Filters */}
         {showFilters && (
           <div className="rounded-xl border border-border bg-card p-4 animate-fade-in space-y-4">
-
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-muted-foreground">Issue type:</span>
@@ -133,7 +197,7 @@ export default function CallLogs() {
                   onChange={setSelectedIssueTypes}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-muted-foreground">Status:</span>
                 <div className="flex gap-2">
@@ -163,7 +227,13 @@ export default function CallLogs() {
         </div>
 
         {/* Table */}
-        <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+        {loading ? (
+          <div className="rounded-xl border border-border bg-card p-8 text-center">
+            <p className="text-muted-foreground">Loading call logs...</p>
+          </div>
+        ) : (
+          <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+        )}
 
         {/* Transcript Modal */}
         <TranscriptModal

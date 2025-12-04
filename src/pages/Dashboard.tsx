@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+interface ApiStats {
+  total: number;
+  completed: number;
+  error: number;
+  pending: number;
+}
+
 export default function Dashboard() {
   const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
   const { selectedDepartment } = useDepartment();
@@ -32,6 +39,12 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [apiStats, setApiStats] = useState<ApiStats>({
+    total: 0,
+    completed: 0,
+    error: 0,
+    pending: 0,
+  });
 
   // Fetch call logs from API
   useEffect(() => {
@@ -44,9 +57,23 @@ export default function Dashboard() {
           throw new Error(`API error: ${response.statusText}`);
         }
         const data = await response.json();
+
+        const countResp = await fetch("http://localhost:3005/count-calls");
+        if (!countResp.ok) {
+          throw new Error(`API error: ${countResp.statusText}`);
+        }
+        const countData = await countResp.json();
+        
+        // Set API stats
+        setApiStats({
+          total: countData.total || 0,
+          completed: countData.completed || 0,
+          error: countData.error || 0,
+          pending: countData.pending || 0,
+        });
         
         // Transform API data to match CallLog interface
-        const transformedLogs: CallLog[] = data.data.map((log: any) => ({
+        const transformedLogs: CallLog[] = (data.data || []).map((log: any) => ({
           id: log.id,
           companyName: log.customerData?.companyName || "Not provided",
           customerName: log.customerData?.customerName || "Not provided",
@@ -60,6 +87,7 @@ export default function Dashboard() {
           customerData: log.customerData,
           issueType: "general",
           hasTranscript: false,
+          date: log.date,
         }));
         
         setCallLogs(transformedLogs);
@@ -115,16 +143,6 @@ export default function Dashboard() {
     }
   };
 
-  // Calculate filtered stats
-  const filteredStats = useMemo(() => {
-    return {
-      totalCalls: filteredLogs.length,
-      completedCalls: filteredLogs.filter((c) => c.status === "completed").length,
-      pendingCalls: filteredLogs.filter((c) => c.status === "pending").length,
-      issues: filteredLogs.filter((c) => c.status === "issue").length,
-    };
-  }, [filteredLogs]);
-
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -149,27 +167,27 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Calls"
-            value={filteredStats.totalCalls.toLocaleString()}
+            value={apiStats.total.toLocaleString()}
             icon={Phone}
             trend={{ value: 12, isPositive: true }}
             variant="primary"
           />
           <StatCard
             title="Completed"
-            value={filteredStats.completedCalls.toLocaleString()}
+            value={apiStats.completed.toLocaleString()}
             icon={CheckCircle}
             trend={{ value: 8, isPositive: true }}
             variant="success"
           />
           <StatCard
             title="Pending"
-            value={filteredStats.pendingCalls.toLocaleString()}
+            value={apiStats.pending.toLocaleString()}
             icon={Clock}
             variant="warning"
           />
           <StatCard
             title="Issues"
-            value={filteredStats.issues.toLocaleString()}
+            value={apiStats.error.toLocaleString()}
             icon={AlertTriangle}
             trend={{ value: 3, isPositive: false }}
             variant="destructive"
