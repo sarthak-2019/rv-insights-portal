@@ -1,12 +1,13 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterHeader } from "@/components/common/FilterHeader";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { dashboardStats, callLogs, companies, repairIssues } from "@/data/mockData";
+import { companies } from "@/data/mockData";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
+import { CallLog } from "@/data/mockData";
 import {
   BarChart,
   Bar,
@@ -29,29 +30,129 @@ import {
   Clock,
   Building2,
 } from "lucide-react";
+import { getApiUrl, apiFetch } from "@/lib/api";
+
+interface ApiStats {
+  total: number;
+  completed: number;
+  error: number;
+  pending: number;
+}
 
 export default function Analytics() {
-  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
+    useFilters();
   const { selectedDepartment } = useDepartment();
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [apiStats, setApiStats] = useState<ApiStats>({
+    total: 0,
+    completed: 0,
+    error: 0,
+    pending: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch call logs from API
+  useEffect(() => {
+    const fetchCallLogs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Convert dateRange to timestamps
+        const params = new URLSearchParams();
+        if (dateRange.from) {
+          const startTimestamp = new Date(dateRange.from).getTime();
+          params.append("startDate", startTimestamp.toString());
+        }
+        if (dateRange.to) {
+          const endTimestamp = new Date(dateRange.to).getTime();
+          params.append("endDate", endTimestamp.toString());
+        }
+
+        const url = `${getApiUrl("get-call-list")}${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        const countResp = await apiFetch("count-calls");
+        if (!countResp.ok) {
+          throw new Error(`API error: ${countResp.statusText}`);
+        }
+        const countData = await countResp.json();
+
+        // Set API stats
+        setApiStats({
+          total: countData.total || 0,
+          completed: countData.completed || 0,
+          error: countData.error || 0,
+          pending: countData.pending || 0,
+        });
+
+        // Transform API data to match CallLog interface
+        const transformedLogs: CallLog[] = (data.data || []).map(
+          (log: any) => ({
+            id: log.id,
+            companyName: log.customerData?.companyName || "Not provided",
+            customerName: log.customerData?.customerName || "Not provided",
+            phoneNumber: log.customerData?.phoneNumber || "Not provided",
+            vin: log.customerData?.vinNumber || "Not provided",
+            duration: log.duration,
+            status: log.status === "ended" ? "completed" : log.status,
+            agentName: log.callAgent || "N/A",
+            callType: log.callType,
+            success: log.success,
+            customerData: log.customerData,
+            issueType: "general",
+            hasTranscript: false,
+            date: log.date,
+          })
+        );
+
+        setCallLogs(transformedLogs);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch call logs"
+        );
+        console.error("Error fetching analytics data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCallLogs();
+  }, [dateRange]);
 
   // Filter logs based on selections
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
-      if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
+      if (
+        selectedCompanies.length > 0 &&
+        !selectedCompanies.includes(log.companyId)
+      ) {
         return false;
       }
-      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
+      if (
+        selectedDepartment !== "all" &&
+        log.department !== selectedDepartment
+      ) {
         return false;
       }
       return true;
     });
-  }, [selectedCompanies, selectedDepartment]);
+  }, [callLogs, selectedCompanies, selectedDepartment]);
 
   // Issue type distribution
   const issueTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
     filteredLogs.forEach((log) => {
-      counts[log.issueType] = (counts[log.issueType] || 0) + 1;
+      const issueType = log.issueType || "general";
+      counts[issueType] = (counts[issueType] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
@@ -61,67 +162,122 @@ export default function Analytics() {
 
   // Top companies by call volume
   const topCompaniesData = useMemo(() => {
-    const counts: Record<number, number> = {};
+    const counts: Record<string, number> = {};
     filteredLogs.forEach((log) => {
-      counts[log.companyId] = (counts[log.companyId] || 0) + 1;
+      counts[log.companyName] = (counts[log.companyName] || 0) + 1;
     });
-    
+
     return Object.entries(counts)
-      .map(([id, count]) => ({
-        name: companies.find((c) => c.id === parseInt(id))?.name || "Unknown",
+      .map(([name, count]) => ({
+        name,
         calls: count,
       }))
       .sort((a, b) => b.calls - a.calls)
       .slice(0, 10);
   }, [filteredLogs]);
 
-  // Calls by department
-  const departmentData = useMemo(() => {
+  // Call type distribution
+  const callTypeData = useMemo(() => {
     const counts: Record<string, number> = {};
-    filteredLogs.forEach((l) => {
-      counts[l.department] = (counts[l.department] || 0) + 1;
+    filteredLogs.forEach((log) => {
+      const type = log.callType || "phone_call";
+      counts[type] = (counts[type] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
+      name: name === "phone_call" ? "Phone Call" : "Web Call",
       value,
     }));
   }, [filteredLogs]);
 
+  // Calculate average duration
+  const avgDuration = useMemo(() => {
+    if (filteredLogs.length === 0) return "0:00";
+    const totalMs = filteredLogs.reduce((sum, log) => sum + log.duration, 0);
+    const avgMs = totalMs / filteredLogs.length;
+    const seconds = Math.floor((avgMs / 1000) % 60);
+    const minutes = Math.floor((avgMs / (1000 * 60)) % 60);
+    const hours = Math.floor(avgMs / (1000 * 60 * 60));
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m ${seconds}s`;
+  }, [filteredLogs]);
+
   // Filtered stats based on department/company selection
   const filteredStats = useMemo(() => {
-    const completed = filteredLogs.filter(log => log.status === "completed").length;
-    const pending = filteredLogs.filter(log => log.status === "pending").length;
-    const issues = filteredLogs.filter(log => log.status === "issue").length;
+    const completed = filteredLogs.filter(
+      (log) => log.status === "completed"
+    ).length;
+    const pending = filteredLogs.filter(
+      (log) => log.status === "pending"
+    ).length;
+    const issues = filteredLogs.filter((log) => log.status === "issue").length;
     return {
       total: filteredLogs.length,
       completed,
       pending,
       issues,
-      avgDuration: filteredLogs.length > 0 ? "4:32" : "0:00",
+      avgDuration,
     };
-  }, [filteredLogs]);
+  }, [filteredLogs, avgDuration]);
 
-  // Status distribution - now uses filtered data
+  // Status distribution
   const statusData = useMemo(() => {
     return [
-      { name: "Completed", value: filteredStats.completed, color: "hsl(142, 76%, 36%)" },
-      { name: "Pending", value: filteredStats.pending, color: "hsl(38, 92%, 50%)" },
-      { name: "Issues", value: filteredStats.issues, color: "hsl(0, 84%, 60%)" },
+      {
+        name: "Completed",
+        value: filteredStats.completed,
+        color: "hsl(142, 76%, 36%)",
+      },
+      {
+        name: "Pending",
+        value: filteredStats.pending,
+        color: "hsl(38, 92%, 50%)",
+      },
+      {
+        name: "Issues",
+        value: filteredStats.issues,
+        color: "hsl(0, 84%, 60%)",
+      },
     ];
   }, [filteredStats]);
 
-  // Mock daily calls trend - varies by department
+  // Mock daily calls trend
   const dailyTrendData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const baseMultiplier = filteredLogs.length > 0 ? filteredLogs.length / callLogs.length : 1;
+    const baseMultiplier =
+      filteredLogs.length > 0
+        ? filteredLogs.length / Math.max(1, callLogs.length)
+        : 1;
     return days.map((day, idx) => ({
       name: day,
       calls: Math.floor((30 + idx * 5) * baseMultiplier),
       completed: Math.floor((20 + idx * 4) * baseMultiplier),
     }));
-  }, [filteredLogs.length]);
+  }, [filteredLogs.length, callLogs.length]);
 
-  const COLORS = ["hsl(217, 91%, 60%)", "hsl(173, 80%, 40%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 60%)", "hsl(280, 65%, 60%)"];
+  const COLORS = [
+    "hsl(217, 91%, 60%)",
+    "hsl(173, 80%, 40%)",
+    "hsl(38, 92%, 50%)",
+    "hsl(0, 84%, 60%)",
+    "hsl(280, 65%, 60%)",
+  ];
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Analytics</h1>
+            <p className="mt-1 text-muted-foreground">
+              Loading analytics data...
+            </p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -133,6 +289,15 @@ export default function Analytics() {
             Performance metrics and insights across all companies
           </p>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+            <p className="text-sm font-medium">
+              Error loading analytics: {error}
+            </p>
+          </div>
+        )}
 
         {/* Filter Header */}
         <FilterHeader
@@ -147,7 +312,7 @@ export default function Analytics() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Calls"
-            value={filteredStats.total.toLocaleString()}
+            value={apiStats.total.toLocaleString()}
             icon={Phone}
             trend={{ value: 12, isPositive: true }}
             variant="primary"
@@ -160,60 +325,24 @@ export default function Analytics() {
           />
           <StatCard
             title="Active Companies"
-            value={new Set(filteredLogs.map(l => l.companyId)).size}
+            value={new Set(filteredLogs.map((l) => l.companyName)).size}
             icon={Building2}
             variant="default"
           />
           <StatCard
             title="Success Rate"
-            value={filteredStats.total > 0 ? `${Math.round((filteredStats.completed / filteredStats.total) * 100)}%` : "0%"}
+            value={
+              filteredStats.total > 0
+                ? `${Math.round(
+                    (filteredStats.completed / filteredStats.total) * 100
+                  )}%`
+                : "0%"
+            }
             icon={TrendingUp}
             trend={{ value: 5, isPositive: true }}
             variant="success"
           />
         </div>
-
-        {/* Top Repair Issues Heatmap */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Repair Issues Heatmap</h3>
-          <div className="space-y-3">
-            {repairIssues.slice(0, 10).map((issue, idx) => (
-              <div key={idx} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">{issue.category}</Badge>
-                    <span className="font-medium">{issue.issue}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {issue.trend > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-destructive" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-success" />
-                    )}
-                    <span className={issue.trend > 0 ? "text-destructive" : "text-success"}>
-                      {issue.trend > 0 ? "+" : ""}{issue.trend}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${
-                        issue.severity === "critical" ? "bg-destructive" :
-                        issue.severity === "high" ? "bg-warning" :
-                        issue.severity === "medium" ? "bg-blue-500" :
-                        "bg-success"
-                      }`}
-                      style={{ width: `${(issue.count / repairIssues[0].count) * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium w-12 text-right">{issue.count}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Top models: {issue.topModels.join(", ")}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
 
         {/* Charts Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
@@ -222,8 +351,15 @@ export default function Analytics() {
             <h3 className="mb-4 text-lg font-semibold">Weekly Call Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailyTrendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <Tooltip
                   contentStyle={{
@@ -253,11 +389,20 @@ export default function Analytics() {
 
           {/* Top Companies */}
           <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Top Companies by Call Volume</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Top Companies by Call Volume
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCompaniesData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  type="number"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
                 <YAxis
                   dataKey="name"
                   type="category"
@@ -273,14 +418,20 @@ export default function Analytics() {
                     borderRadius: "8px",
                   }}
                 />
-                <Bar dataKey="calls" fill="hsl(217, 91%, 60%)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="calls"
+                  fill="hsl(217, 91%, 60%)"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </Card>
 
           {/* Issue Type Distribution */}
           <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Issue Type Distribution</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Issue Type Distribution
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -291,11 +442,16 @@ export default function Analytics() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {issueTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip
@@ -322,7 +478,9 @@ export default function Analytics() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {statusData.map((entry, index) => (
@@ -339,32 +497,116 @@ export default function Analytics() {
               </PieChart>
             </ResponsiveContainer>
           </Card>
+
+          {/* Call Type Distribution */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">
+              Call Type Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={callTypeData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  labelLine={false}
+                >
+                  {callTypeData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
         </div>
 
-        {/* Department Breakdown */}
+        {/* Call Status Summary */}
         <Card className="p-6">
-          <h3 className="mb-4 text-lg font-semibold">Department Breakdown</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {departmentData.map((dept, index) => (
-              <div
-                key={dept.name}
-                className="flex items-center justify-between rounded-lg bg-secondary/50 p-4"
-              >
+          <h3 className="mb-4 text-lg font-semibold">Call Status Summary</h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: COLORS[index] }}
-                  />
-                  <span className="font-medium">{dept.name}</span>
+                  <div className="h-3 w-3 rounded-full bg-success" />
+                  <span className="font-medium">Completed</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">{dept.value.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">
+                    {filteredStats.completed.toLocaleString()}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {filteredStats.total > 0 ? ((dept.value / filteredStats.total) * 100).toFixed(1) : 0}% of total
+                    {filteredStats.total > 0
+                      ? (
+                          (filteredStats.completed / filteredStats.total) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    % of total
                   </p>
                 </div>
               </div>
-            ))}
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-warning" />
+                  <span className="font-medium">Pending</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold">
+                    {filteredStats.pending.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredStats.total > 0
+                      ? (
+                          (filteredStats.pending / filteredStats.total) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    % of total
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg bg-secondary/50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-3 w-3 rounded-full bg-destructive" />
+                  <span className="font-medium">Issues</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold">
+                    {filteredStats.issues.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredStats.total > 0
+                      ? (
+                          (filteredStats.issues / filteredStats.total) *
+                          100
+                        ).toFixed(1)
+                      : 0}
+                    % of total
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
       </div>

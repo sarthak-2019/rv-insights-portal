@@ -6,7 +6,7 @@ interface RecentActivityProps {
   logs: CallLog[];
 }
 
-export function RecentActivity({ logs }: RecentActivityProps) {
+export function RecentActivity({ logs }: any) {
   const recentLogs = logs.slice(0, 8);
 
   return (
@@ -41,7 +41,7 @@ export function RecentActivity({ logs }: RecentActivityProps) {
                 </span>
               </div>
               <p className="truncate text-sm text-muted-foreground">
-                {log.companyName} • {log.summary}
+                {log.companyName} • {log.issueSummary}
               </p>
             </div>
           </div>
