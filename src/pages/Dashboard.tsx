@@ -19,6 +19,7 @@ import {
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { apiFetch } from "@/lib/api";
 
 interface ApiStats {
   total: number;
@@ -28,13 +29,16 @@ interface ApiStats {
 }
 
 export default function Dashboard() {
-  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
+    useFilters();
   const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
-  const [quickDateFilter, setQuickDateFilter] = useState<"today" | "week" | "month" | "all">("week");
+  const [quickDateFilter, setQuickDateFilter] = useState<
+    "today" | "week" | "month" | "all"
+  >("week");
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,18 +56,18 @@ export default function Dashboard() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("http://localhost:3005/get-call-list");
+        const response = await apiFetch("get-call-list");
         if (!response.ok) {
           throw new Error(`API error: ${response.statusText}`);
         }
         const data = await response.json();
 
-        const countResp = await fetch("http://localhost:3005/count-calls");
+        const countResp = await apiFetch("count-calls");
         if (!countResp.ok) {
           throw new Error(`API error: ${countResp.statusText}`);
         }
         const countData = await countResp.json();
-        
+
         // Set API stats
         setApiStats({
           total: countData.total || 0,
@@ -71,29 +75,33 @@ export default function Dashboard() {
           error: countData.error || 0,
           pending: countData.pending || 0,
         });
-        
+
         // Transform API data to match CallLog interface
-        const transformedLogs: CallLog[] = (data.data || []).map((log: any) => ({
-          id: log.id,
-          companyName: log.customerData?.companyName || "Not provided",
-          customerName: log.customerData?.customerName || "Not provided",
-          phoneNumber: log.customerData?.phoneNumber || "Not provided",
-          vin: log.customerData?.vinNumber || "Not provided",
-          duration: log.duration,
-          status: log.status === "ended" ? "completed" : log.status,
-          agentName: log.callAgent || "N/A",
-          callType: log.callType,
-          success: log.success,
-          customerData: log.customerData,
-          issueType: "general",
-          hasTranscript: false,
-          date: log.date,
-        }));
-        
+        const transformedLogs: CallLog[] = (data.data || []).map(
+          (log: any) => ({
+            id: log.id,
+            companyName: log.customerData?.companyName || "Not provided",
+            customerName: log.customerData?.customerName || "Not provided",
+            phoneNumber: log.customerData?.phoneNumber || "Not provided",
+            vin: log.customerData?.vinNumber || "Not provided",
+            duration: log.duration,
+            status: log.status === "ended" ? "completed" : log.status,
+            agentName: log.callAgent || "N/A",
+            callType: log.callType,
+            success: log.success,
+            customerData: log.customerData,
+            issueType: "general",
+            hasTranscript: false,
+            date: log.date,
+          })
+        );
+
         setCallLogs(transformedLogs);
         setRecentActivity(data.recentIssues || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch call logs");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch call logs"
+        );
         console.error("Error fetching call logs:", err);
       } finally {
         setLoading(false);
@@ -106,20 +114,29 @@ export default function Dashboard() {
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
       // Company filter
-      if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
+      if (
+        selectedCompanies.length > 0 &&
+        !selectedCompanies.includes(log.companyId)
+      ) {
         return false;
       }
-      
+
       // Department filter
-      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
+      if (
+        selectedDepartment !== "all" &&
+        log.department !== selectedDepartment
+      ) {
         return false;
       }
-      
+
       // Issue type filter
-      if (selectedIssueTypes.length > 0 && !selectedIssueTypes.includes(log.issueType)) {
+      if (
+        selectedIssueTypes.length > 0 &&
+        !selectedIssueTypes.includes(log.issueType)
+      ) {
         return false;
       }
-      
+
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -130,10 +147,16 @@ export default function Dashboard() {
           (log.vin && log.vin.toLowerCase().includes(query))
         );
       }
-      
+
       return true;
     });
-  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery]);
+  }, [
+    callLogs,
+    selectedCompanies,
+    selectedDepartment,
+    selectedIssueTypes,
+    searchQuery,
+  ]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -159,7 +182,9 @@ export default function Dashboard() {
         {/* Error Message */}
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-            <p className="text-sm font-medium">Error loading call logs: {error}</p>
+            <p className="text-sm font-medium">
+              Error loading call logs: {error}
+            </p>
           </div>
         )}
 
@@ -212,7 +237,9 @@ export default function Dashboard() {
                   <button
                     onClick={() => setQuickDateFilter("today")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      quickDateFilter === "today" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "today"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     }`}
                   >
                     Today
@@ -220,7 +247,9 @@ export default function Dashboard() {
                   <button
                     onClick={() => setQuickDateFilter("week")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      quickDateFilter === "week" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "week"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     }`}
                   >
                     Week
@@ -228,7 +257,9 @@ export default function Dashboard() {
                   <button
                     onClick={() => setQuickDateFilter("month")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      quickDateFilter === "month" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "month"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     }`}
                   >
                     Month
@@ -236,7 +267,9 @@ export default function Dashboard() {
                   <button
                     onClick={() => setQuickDateFilter("all")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      quickDateFilter === "all" ? "bg-background shadow-sm" : "hover:bg-background/50"
+                      quickDateFilter === "all"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     }`}
                   >
                     All Time
@@ -254,7 +287,9 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">Filter by issue type:</span>
+              <span className="text-sm text-muted-foreground">
+                Filter by issue type:
+              </span>
               <IssueTypeFilter
                 selected={selectedIssueTypes}
                 onChange={setSelectedIssueTypes}
@@ -272,7 +307,10 @@ export default function Dashboard() {
                 <p className="text-muted-foreground">Loading call logs...</p>
               </div>
             ) : (
-              <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+              <CallLogsTable
+                logs={filteredLogs}
+                onViewTranscript={handleViewTranscript}
+              />
             )}
           </div>
 

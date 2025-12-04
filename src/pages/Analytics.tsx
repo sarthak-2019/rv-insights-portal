@@ -30,6 +30,7 @@ import {
   Clock,
   Building2,
 } from "lucide-react";
+import { getApiUrl, apiFetch } from "@/lib/api";
 
 interface ApiStats {
   total: number;
@@ -39,7 +40,8 @@ interface ApiStats {
 }
 
 export default function Analytics() {
-  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
+    useFilters();
   const { selectedDepartment } = useDepartment();
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [apiStats, setApiStats] = useState<ApiStats>({
@@ -69,7 +71,7 @@ export default function Analytics() {
           params.append("endDate", endTimestamp.toString());
         }
 
-        const url = `http://localhost:3005/get-call-list${
+        const url = `${getApiUrl("get-call-list")}${
           params.toString() ? `?${params.toString()}` : ""
         }`;
         const response = await fetch(url);
@@ -78,7 +80,7 @@ export default function Analytics() {
         }
         const data = await response.json();
 
-        const countResp = await fetch("http://localhost:3005/count-calls");
+        const countResp = await apiFetch("count-calls");
         if (!countResp.ok) {
           throw new Error(`API error: ${countResp.statusText}`);
         }
@@ -93,22 +95,24 @@ export default function Analytics() {
         });
 
         // Transform API data to match CallLog interface
-        const transformedLogs: CallLog[] = (data.data || []).map((log: any) => ({
-          id: log.id,
-          companyName: log.customerData?.companyName || "Not provided",
-          customerName: log.customerData?.customerName || "Not provided",
-          phoneNumber: log.customerData?.phoneNumber || "Not provided",
-          vin: log.customerData?.vinNumber || "Not provided",
-          duration: log.duration,
-          status: log.status === "ended" ? "completed" : log.status,
-          agentName: log.callAgent || "N/A",
-          callType: log.callType,
-          success: log.success,
-          customerData: log.customerData,
-          issueType: "general",
-          hasTranscript: false,
-          date: log.date,
-        }));
+        const transformedLogs: CallLog[] = (data.data || []).map(
+          (log: any) => ({
+            id: log.id,
+            companyName: log.customerData?.companyName || "Not provided",
+            customerName: log.customerData?.customerName || "Not provided",
+            phoneNumber: log.customerData?.phoneNumber || "Not provided",
+            vin: log.customerData?.vinNumber || "Not provided",
+            duration: log.duration,
+            status: log.status === "ended" ? "completed" : log.status,
+            agentName: log.callAgent || "N/A",
+            callType: log.callType,
+            success: log.success,
+            customerData: log.customerData,
+            issueType: "general",
+            hasTranscript: false,
+            date: log.date,
+          })
+        );
 
         setCallLogs(transformedLogs);
       } catch (err) {
@@ -127,10 +131,16 @@ export default function Analytics() {
   // Filter logs based on selections
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
-      if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
+      if (
+        selectedCompanies.length > 0 &&
+        !selectedCompanies.includes(log.companyId)
+      ) {
         return false;
       }
-      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
+      if (
+        selectedDepartment !== "all" &&
+        log.department !== selectedDepartment
+      ) {
         return false;
       }
       return true;
@@ -195,8 +205,12 @@ export default function Analytics() {
 
   // Filtered stats based on department/company selection
   const filteredStats = useMemo(() => {
-    const completed = filteredLogs.filter((log) => log.status === "completed").length;
-    const pending = filteredLogs.filter((log) => log.status === "pending").length;
+    const completed = filteredLogs.filter(
+      (log) => log.status === "completed"
+    ).length;
+    const pending = filteredLogs.filter(
+      (log) => log.status === "pending"
+    ).length;
     const issues = filteredLogs.filter((log) => log.status === "issue").length;
     return {
       total: filteredLogs.length,
@@ -210,16 +224,31 @@ export default function Analytics() {
   // Status distribution
   const statusData = useMemo(() => {
     return [
-      { name: "Completed", value: filteredStats.completed, color: "hsl(142, 76%, 36%)" },
-      { name: "Pending", value: filteredStats.pending, color: "hsl(38, 92%, 50%)" },
-      { name: "Issues", value: filteredStats.issues, color: "hsl(0, 84%, 60%)" },
+      {
+        name: "Completed",
+        value: filteredStats.completed,
+        color: "hsl(142, 76%, 36%)",
+      },
+      {
+        name: "Pending",
+        value: filteredStats.pending,
+        color: "hsl(38, 92%, 50%)",
+      },
+      {
+        name: "Issues",
+        value: filteredStats.issues,
+        color: "hsl(0, 84%, 60%)",
+      },
     ];
   }, [filteredStats]);
 
   // Mock daily calls trend
   const dailyTrendData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const baseMultiplier = filteredLogs.length > 0 ? filteredLogs.length / Math.max(1, callLogs.length) : 1;
+    const baseMultiplier =
+      filteredLogs.length > 0
+        ? filteredLogs.length / Math.max(1, callLogs.length)
+        : 1;
     return days.map((day, idx) => ({
       name: day,
       calls: Math.floor((30 + idx * 5) * baseMultiplier),
@@ -241,7 +270,9 @@ export default function Analytics() {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Analytics</h1>
-            <p className="mt-1 text-muted-foreground">Loading analytics data...</p>
+            <p className="mt-1 text-muted-foreground">
+              Loading analytics data...
+            </p>
           </div>
         </div>
       </MainLayout>
@@ -262,7 +293,9 @@ export default function Analytics() {
         {/* Error Message */}
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-            <p className="text-sm font-medium">Error loading analytics: {error}</p>
+            <p className="text-sm font-medium">
+              Error loading analytics: {error}
+            </p>
           </div>
         )}
 
@@ -300,7 +333,9 @@ export default function Analytics() {
             title="Success Rate"
             value={
               filteredStats.total > 0
-                ? `${Math.round((filteredStats.completed / filteredStats.total) * 100)}%`
+                ? `${Math.round(
+                    (filteredStats.completed / filteredStats.total) * 100
+                  )}%`
                 : "0%"
             }
             icon={TrendingUp}
@@ -316,8 +351,15 @@ export default function Analytics() {
             <h3 className="mb-4 text-lg font-semibold">Weekly Call Trend</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dailyTrendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  dataKey="name"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <Tooltip
                   contentStyle={{
@@ -347,11 +389,20 @@ export default function Analytics() {
 
           {/* Top Companies */}
           <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Top Companies by Call Volume</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Top Companies by Call Volume
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={topCompaniesData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                />
+                <XAxis
+                  type="number"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                />
                 <YAxis
                   dataKey="name"
                   type="category"
@@ -367,14 +418,20 @@ export default function Analytics() {
                     borderRadius: "8px",
                   }}
                 />
-                <Bar dataKey="calls" fill="hsl(217, 91%, 60%)" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="calls"
+                  fill="hsl(217, 91%, 60%)"
+                  radius={[0, 4, 4, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </Card>
 
           {/* Issue Type Distribution */}
           <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Issue Type Distribution</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Issue Type Distribution
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -385,11 +442,16 @@ export default function Analytics() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {issueTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip
@@ -416,7 +478,9 @@ export default function Analytics() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {statusData.map((entry, index) => (
@@ -436,7 +500,9 @@ export default function Analytics() {
 
           {/* Call Type Distribution */}
           <Card className="p-6">
-            <h3 className="mb-4 text-lg font-semibold">Call Type Distribution</h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Call Type Distribution
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -447,11 +513,16 @@ export default function Analytics() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   labelLine={false}
                 >
                   {callTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip
@@ -482,7 +553,10 @@ export default function Analytics() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {filteredStats.total > 0
-                      ? ((filteredStats.completed / filteredStats.total) * 100).toFixed(1)
+                      ? (
+                          (filteredStats.completed / filteredStats.total) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     % of total
                   </p>
@@ -501,7 +575,10 @@ export default function Analytics() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {filteredStats.total > 0
-                      ? ((filteredStats.pending / filteredStats.total) * 100).toFixed(1)
+                      ? (
+                          (filteredStats.pending / filteredStats.total) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     % of total
                   </p>
@@ -520,7 +597,10 @@ export default function Analytics() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {filteredStats.total > 0
-                      ? ((filteredStats.issues / filteredStats.total) * 100).toFixed(1)
+                      ? (
+                          (filteredStats.issues / filteredStats.total) *
+                          100
+                        ).toFixed(1)
                       : 0}
                     % of total
                   </p>

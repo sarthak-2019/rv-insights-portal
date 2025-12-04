@@ -12,12 +12,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { apiFetch, getApiUrl } from "@/lib/api";
 
 export default function CallLogs() {
-  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } = useFilters();
+  const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
+    useFilters();
   const { selectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">("all");
+  const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">(
+    "all"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
@@ -44,7 +48,9 @@ export default function CallLogs() {
           params.append("endDate", endTimestamp.toString());
         }
 
-        const url = `http://localhost:3005/get-call-list${params.toString() ? `?${params.toString()}` : ""}`;
+        const url = `${getApiUrl("get-call-list")}${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`API error: ${response.statusText}`);
@@ -52,26 +58,32 @@ export default function CallLogs() {
         const data = await response.json();
 
         // Transform API data to match CallLog interface
-        const transformedLogs: CallLog[] = (data.data || []).map((log: any) => ({
-          id: log.id,
-          companyName: log.customerData?.companyName || "Not provided",
-          customerName: log.customerData?.customerName || "Not provided",
-          phoneNumber: log.customerData?.phoneNumber || "Not provided",
-          vin: log.customerData?.vinNumber || "Not provided",
-          duration: log.duration,
-          status: log.status === "ended" ? "completed" : log.status,
-          agentName: log.callAgent || "N/A",
-          callType: log.callType,
-          success: log.success,
-          customerData: log.customerData,
-          issueType: "general",
-          hasTranscript: false,
-          summary: `${log.customerData?.customerName || "Customer"} - ${log.customerData?.companyName || "Company"}`,
-        }));
+        const transformedLogs: CallLog[] = (data.data || []).map(
+          (log: any) => ({
+            id: log.id,
+            companyName: log.customerData?.companyName || "Not provided",
+            customerName: log.customerData?.customerName || "Not provided",
+            phoneNumber: log.customerData?.phoneNumber || "Not provided",
+            vin: log.customerData?.vinNumber || "Not provided",
+            duration: log.duration,
+            status: log.status === "ended" ? "completed" : log.status,
+            agentName: log.callAgent || "N/A",
+            callType: log.callType,
+            success: log.success,
+            customerData: log.customerData,
+            issueType: "general",
+            hasTranscript: false,
+            summary: `${log.customerData?.customerName || "Customer"} - ${
+              log.customerData?.companyName || "Company"
+            }`,
+          })
+        );
 
         setCallLogs(transformedLogs);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch call logs");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch call logs"
+        );
         console.error("Error fetching call logs:", err);
       } finally {
         setLoading(false);
@@ -83,13 +95,22 @@ export default function CallLogs() {
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
-      if (selectedCompanies.length > 0 && !selectedCompanies.includes(log.companyId)) {
+      if (
+        selectedCompanies.length > 0 &&
+        !selectedCompanies.includes(log.companyId)
+      ) {
         return false;
       }
-      if (selectedDepartment !== "all" && log.department !== selectedDepartment) {
+      if (
+        selectedDepartment !== "all" &&
+        log.department !== selectedDepartment
+      ) {
         return false;
       }
-      if (selectedIssueTypes.length > 0 && !selectedIssueTypes.includes(log.issueType)) {
+      if (
+        selectedIssueTypes.length > 0 &&
+        !selectedIssueTypes.includes(log.issueType)
+      ) {
         return false;
       }
       if (selectedStatus !== "all" && log.status !== selectedStatus) {
@@ -108,7 +129,14 @@ export default function CallLogs() {
       }
       return true;
     });
-  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus, searchQuery]);
+  }, [
+    callLogs,
+    selectedCompanies,
+    selectedDepartment,
+    selectedIssueTypes,
+    selectedStatus,
+    searchQuery,
+  ]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -125,7 +153,12 @@ export default function CallLogs() {
     if (selectedIssueTypes.length > 0) count++;
     if (selectedStatus !== "all") count++;
     return count;
-  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, selectedStatus]);
+  }, [
+    selectedCompanies,
+    selectedDepartment,
+    selectedIssueTypes,
+    selectedStatus,
+  ]);
 
   return (
     <MainLayout>
@@ -162,7 +195,9 @@ export default function CallLogs() {
         {/* Error Message */}
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-            <p className="text-sm font-medium">Error loading call logs: {error}</p>
+            <p className="text-sm font-medium">
+              Error loading call logs: {error}
+            </p>
           </div>
         )}
 
@@ -191,7 +226,9 @@ export default function CallLogs() {
           <div className="rounded-xl border border-border bg-card p-4 animate-fade-in space-y-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-2">
-                <span className="text-sm text-muted-foreground">Issue type:</span>
+                <span className="text-sm text-muted-foreground">
+                  Issue type:
+                </span>
                 <IssueTypeFilter
                   selected={selectedIssueTypes}
                   onChange={setSelectedIssueTypes}
@@ -201,18 +238,20 @@ export default function CallLogs() {
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-muted-foreground">Status:</span>
                 <div className="flex gap-2">
-                  {(["all", "completed", "pending", "issue"] as const).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setSelectedStatus(status)}
-                      className={cn(
-                        "filter-chip capitalize",
-                        selectedStatus === status && "filter-chip-active"
-                      )}
-                    >
-                      {status}
-                    </button>
-                  ))}
+                  {(["all", "completed", "pending", "issue"] as const).map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => setSelectedStatus(status)}
+                        className={cn(
+                          "filter-chip capitalize",
+                          selectedStatus === status && "filter-chip-active"
+                        )}
+                      >
+                        {status}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -222,7 +261,8 @@ export default function CallLogs() {
         {/* Results Summary */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {filteredLogs.length.toLocaleString()} of {callLogs.length.toLocaleString()} calls
+            Showing {filteredLogs.length.toLocaleString()} of{" "}
+            {callLogs.length.toLocaleString()} calls
           </p>
         </div>
 
@@ -232,7 +272,10 @@ export default function CallLogs() {
             <p className="text-muted-foreground">Loading call logs...</p>
           </div>
         ) : (
-          <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+          <CallLogsTable
+            logs={filteredLogs}
+            onViewTranscript={handleViewTranscript}
+          />
         )}
 
         {/* Transcript Modal */}
