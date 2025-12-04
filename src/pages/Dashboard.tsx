@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FilterHeader } from "@/components/common/FilterHeader";
@@ -6,7 +6,7 @@ import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { callLogs, companies, dashboardStats, IssueType, CallLog } from "@/data/mockData";
+import { companies, dashboardStats, IssueType, CallLog } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
 import {
@@ -28,6 +28,52 @@ export default function Dashboard() {
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [quickDateFilter, setQuickDateFilter] = useState<"today" | "week" | "month" | "all">("week");
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch call logs from API
+  useEffect(() => {
+    const fetchCallLogs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch("http://localhost:3005/get-call-list");
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        // Transform API data to match CallLog interface
+        const transformedLogs: CallLog[] = data.data.map((log: any) => ({
+          id: log.id,
+          companyName: log.customerData?.companyName || "Not provided",
+          customerName: log.customerData?.customerName || "Not provided",
+          phoneNumber: log.customerData?.phoneNumber || "Not provided",
+          vin: log.customerData?.vinNumber || "Not provided",
+          duration: log.duration,
+          status: log.status === "ended" ? "completed" : log.status,
+          agentName: log.callAgent || "N/A",
+          callType: log.callType,
+          success: log.success,
+          customerData: log.customerData,
+          issueType: "general",
+          hasTranscript: false,
+        }));
+        
+        setCallLogs(transformedLogs);
+        setRecentActivity(data.recentIssues || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch call logs");
+        console.error("Error fetching call logs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCallLogs();
+  }, []);
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
@@ -53,14 +99,13 @@ export default function Dashboard() {
           log.customerName.toLowerCase().includes(query) ||
           log.companyName.toLowerCase().includes(query) ||
           log.id.toLowerCase().includes(query) ||
-          log.summary.toLowerCase().includes(query) ||
           (log.vin && log.vin.toLowerCase().includes(query))
         );
       }
       
       return true;
     });
-  }, [selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery]);
+  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -92,6 +137,13 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+            <p className="text-sm font-medium">Error loading call logs: {error}</p>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -197,12 +249,18 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Call Logs Table */}
           <div className="lg:col-span-2">
-            <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+            {loading ? (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <p className="text-muted-foreground">Loading call logs...</p>
+              </div>
+            ) : (
+              <CallLogsTable logs={filteredLogs} onViewTranscript={handleViewTranscript} />
+            )}
           </div>
 
           {/* Recent Activity */}
           <div>
-            <RecentActivity logs={filteredLogs} />
+            <RecentActivity logs={recentActivity} />
           </div>
         </div>
 

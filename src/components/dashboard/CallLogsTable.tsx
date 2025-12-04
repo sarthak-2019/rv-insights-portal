@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, ChevronLeft, ChevronRight, Phone, Clock, User } from "lucide-react";
 
 interface CallLogsTableProps {
-  logs: CallLog[];
+  logs: any[];
   onViewTranscript: (callId: string) => void;
 }
 
@@ -30,6 +30,28 @@ const issueTypeStyles = {
   warranty: "bg-warning/10 text-warning",
   general: "bg-secondary text-secondary-foreground",
   billing: "bg-destructive/10 text-destructive",
+};
+
+// Helper function to format duration from milliseconds to readable format
+const formatDuration = (durationMs: number): string => {
+  const seconds = Math.floor((durationMs / 1000) % 60);
+  const minutes = Math.floor((durationMs / (1000 * 60)) % 60);
+  const hours = Math.floor(durationMs / (1000 * 60 * 60));
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m ${seconds}s`;
+};
+
+// Helper function to format date
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
@@ -70,54 +92,59 @@ export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
                 <TableCell className="font-mono text-sm">{log.id}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{log.companyName}</span>
+                    <span className="font-medium">{log.companyName || "N/A"}</span>
                     <Badge
                       variant="secondary"
                       className={cn(
                         "text-[10px]",
-                        log.department === "retail"
+                        log.callType === "phone_call"
                           ? "bg-primary/10 text-primary"
                           : "bg-accent/10 text-accent"
                       )}
                     >
-                      {log.department}
+                      {log.callType === "phone_call" ? "phone" : "web"}
                     </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium">{log.customerName}</span>
+                    <span className="font-medium">{log.customerName || "Not provided"}</span>
                     <span className="text-xs text-muted-foreground">
-                      {log.phoneNumber}
+                      {log.phoneNumber && log.phoneNumber !== "Not provided"
+                        ? log.phoneNumber
+                        : "No phone"}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <span className="font-mono text-xs text-muted-foreground">
-                    {log.vin || "N/A"}
+                    {log.vin && log.vin !== "Not provided" ? log.vin : "N/A"}
                   </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{log.date}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {log.date ? formatDate(log.date) : "N/A"}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    {log.duration}
+                    {formatDuration(log.duration)}
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant="secondary"
-                    className={cn("text-xs capitalize", issueTypeStyles[log.issueType])}
+                    className={cn("text-xs capitalize", issueTypeStyles[log.issueType] || issueTypeStyles.general)}
                   >
-                    {log.issueType}
+                    {log.issueType || "general"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className={cn("status-badge", statusStyles[log.status])}>
+                  <span className={cn("status-badge", statusStyles[log.status] || statusStyles.completed)}>
                     <span
                       className={cn(
                         "h-1.5 w-1.5 rounded-full",
                         log.status === "completed" && "bg-success",
+                        log.status === "ended" && "bg-success",
                         log.status === "pending" && "bg-warning",
                         log.status === "issue" && "bg-destructive"
                       )}
@@ -128,7 +155,7 @@ export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-sm">{log.agentName}</span>
+                    <span className="text-sm">{log.agentName || "N/A"}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">

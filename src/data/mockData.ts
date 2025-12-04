@@ -73,19 +73,27 @@ export type IssueType = "parts" | "motor" | "warranty" | "general" | "billing";
 
 export interface CallLog {
   id: string;
-  companyId: number;
+  companyId?: number;
   companyName: string;
   customerName: string;
   phoneNumber: string;
-  date: string;
-  duration: string;
+  date?: string;
+  duration: number; // Changed from string to number (milliseconds)
   status: CallStatus;
-  issueType: IssueType;
-  summary: string;
-  hasTranscript: boolean;
+  issueType?: IssueType;
+  summary?: string;
+  hasTranscript?: boolean;
   agentName: string;
-  department: "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer";
+  department?: "retail" | "service" | "maintenance" | "compliance" | "claims" | "manufacturer";
   vin?: string;
+  callType: "phone_call" | "web_call"; // Added from API
+  success: boolean; // Added from API
+  customerData?: {
+    companyName: string;
+    customerName: string;
+    phoneNumber: string;
+    vinNumber: string;
+  };
 }
 
 const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"];
@@ -182,7 +190,7 @@ export function generateCallLogs(count: number = 500): CallLog[] {
       customerName: `${randomElement(firstNames)} ${randomElement(lastNames)}`,
       phoneNumber: generatePhoneNumber(),
       date: randomDate(90),
-      duration: generateDuration(),
+      duration: Math.floor(Math.random() * 3600000), // Random duration in milliseconds
       status,
       issueType,
       summary: randomElement(summaries[issueType]),
@@ -190,6 +198,14 @@ export function generateCallLogs(count: number = 500): CallLog[] {
       agentName: randomElement(agentNames),
       department: company.type as "retail" | "service",
       vin: generateVIN(),
+      callType: randomElement(["phone_call", "web_call"]),
+      success: Math.random() > 0.1, // 90% chance of success
+      customerData: {
+        companyName: company.name,
+        customerName: `${randomElement(firstNames)} ${randomElement(lastNames)}`,
+        phoneNumber: generatePhoneNumber(),
+        vinNumber: generateVIN(),
+      },
     });
   }
   
