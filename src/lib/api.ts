@@ -25,3 +25,69 @@ export const apiFetch = async (
   const url = getApiUrl(endpoint);
   return fetch(url, options);
 };
+
+/**
+ * Dummy company names for demo purposes
+ * Maps real company names to fictional ones
+ */
+const dummyCompanyNames = [
+  "Acme RV Sales Co.",
+  "Global RV Center",
+  "Premier Service Hub",
+  "Coastal Repair Group",
+  "Metro RV Dealership",
+  "Apex Service Center",
+  "Summit RV Services",
+  "Titan Maintenance Co.",
+  "Stellar Manufacturing Co.",
+  "Platinum Motors Inc.",
+  "Horizon Camper Co.",
+  "Liberty RV Group",
+  "Pioneer Coach Works",
+  "Cascade RV Industries",
+  "Sterling Motor Corp.",
+  "Southern Comfort RV",
+  "Atlas Coach Co.",
+  "Evergreen RV Group",
+  "Monarch Motorhomes",
+  "Voyager RV Inc.",
+  "Elite Coach Systems",
+  "Prestige Luxury RV",
+  "Valley View RV",
+  "Mountain Ridge RV",
+  "Trailhead RV Co.",
+  "Frontier Manufacturing",
+  "Redwood RV Sales",
+  "Heritage RV Center",
+  "Lakeside RV Group",
+  "Discovery RV Services",
+];
+
+// Cache for consistent mapping
+const companyNameCache = new Map<string, string>();
+let nameIndex = 0;
+
+/**
+ * Maps a real company name to a dummy name (consistent mapping)
+ */
+export const toDummyCompanyName = (realName: string): string => {
+  if (!realName || realName === "Not provided") return realName;
+  
+  if (companyNameCache.has(realName)) {
+    return companyNameCache.get(realName)!;
+  }
+  
+  const dummyName = dummyCompanyNames[nameIndex % dummyCompanyNames.length];
+  companyNameCache.set(realName, dummyName);
+  nameIndex++;
+  
+  return dummyName;
+};
+
+/**
+ * Resets the company name cache (useful for testing)
+ */
+export const resetCompanyNameCache = () => {
+  companyNameCache.clear();
+  nameIndex = 0;
+};
