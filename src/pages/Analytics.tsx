@@ -2,12 +2,10 @@ import { useMemo, useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterHeader } from "@/components/common/FilterHeader";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { companies } from "@/data/mockData";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
-import { CallLog } from "@/data/mockData";
+import { IssueType, CallLog } from "@/data/mockData";
 import {
   BarChart,
   Bar,
@@ -26,7 +24,6 @@ import {
 import {
   Phone,
   TrendingUp,
-  TrendingDown,
   Clock,
   Building2,
 } from "lucide-react";
@@ -39,11 +36,17 @@ interface ApiStats {
   pending: number;
 }
 
+interface Company {
+  id: number;
+  name: string;
+}
+
 export default function Analytics() {
   const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
     useFilters();
   const { selectedDepartment } = useDepartment();
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [apiStats, setApiStats] = useState<ApiStats>({
     total: 0,
     completed: 0,
@@ -108,13 +111,33 @@ export default function Analytics() {
             callType: log.callType,
             success: log.success,
             customerData: log.customerData,
-            issueType: "general",
+            issueType: (log.customerData?.issueType || "general") as IssueType,
+            department: log.customerData?.industryType || "retail",
             hasTranscript: false,
             date: log.date,
           })
         );
 
         setCallLogs(transformedLogs);
+
+        // Extract unique companies from call logs
+        const uniqueCompanies = new Map<string, Company>();
+        transformedLogs.forEach((log, index) => {
+          if (log.companyName && log.companyName !== "Not provided") {
+            if (!uniqueCompanies.has(log.companyName)) {
+              uniqueCompanies.set(log.companyName, {
+                id: index,
+                name: log.companyName,
+              });
+            }
+          }
+        });
+
+        const companyList = Array.from(uniqueCompanies.values()).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setCompanies(companyList);
+        console.log("Companies extracted from call logs:", companyList);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to fetch call logs"
@@ -131,21 +154,28 @@ export default function Analytics() {
   // Filter logs based on selections
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
+      // Company filter
       if (
         selectedCompanies.length > 0 &&
-        !selectedCompanies.includes(log.companyId)
+        !selectedCompanies.some((companyId) => {
+          const company = companies.find((c) => c.id === companyId);
+          return company && log.companyName === company.name;
+        })
       ) {
         return false;
       }
+
+      // Department/Industry Type filter
       if (
         selectedDepartment !== "all" &&
         log.department !== selectedDepartment
       ) {
         return false;
       }
+
       return true;
     });
-  }, [callLogs, selectedCompanies, selectedDepartment]);
+  }, [callLogs, selectedCompanies, selectedDepartment, companies]);
 
   // Issue type distribution
   const issueTypeData = useMemo(() => {
@@ -154,10 +184,12 @@ export default function Analytics() {
       const issueType = log.issueType || "general";
       counts[issueType] = (counts[issueType] || 0) + 1;
     });
-    return Object.entries(counts).map(([name, value]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      value,
-    }));
+    return Object.entries(counts)
+      .map(([name, value]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value,
+      }))
+      .sort((a, b) => b.value - a.value);
   }, [filteredLogs]);
 
   // Top companies by call volume
@@ -242,7 +274,7 @@ export default function Analytics() {
     ];
   }, [filteredStats]);
 
-  // Mock daily calls trend
+  // Daily calls trend based on filtered logs
   const dailyTrendData = useMemo(() => {
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const baseMultiplier =
