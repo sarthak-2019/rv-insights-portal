@@ -71,14 +71,18 @@ let nameIndex = 0;
  * Maps a real company name to a dummy name (consistent mapping)
  */
 export const toDummyCompanyName = (realName: string): string => {
-  if (!realName || realName === "Not provided") return realName;
+  // Normalize empty/invalid values
+  const invalidValues = ["Not provided", "Unknown", "N/A", "", null, undefined];
+  const normalizedName = !realName || invalidValues.includes(realName) 
+    ? `_empty_${nameIndex}` 
+    : realName;
   
-  if (companyNameCache.has(realName)) {
-    return companyNameCache.get(realName)!;
+  if (companyNameCache.has(normalizedName)) {
+    return companyNameCache.get(normalizedName)!;
   }
   
   const dummyName = dummyCompanyNames[nameIndex % dummyCompanyNames.length];
-  companyNameCache.set(realName, dummyName);
+  companyNameCache.set(normalizedName, dummyName);
   nameIndex++;
   
   return dummyName;
