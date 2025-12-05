@@ -14,7 +14,7 @@ import {
 import { Search, Building2, Phone, MapPin, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, toDummyCompanyName } from "@/lib/api";
 
 interface CompanyStats {
   name: string;
@@ -50,7 +50,7 @@ export default function Companies() {
         const companiesMap = new Map<string, CompanyStats>();
 
         (data.data || []).forEach((log: any) => {
-          const companyName = log.customerData?.companyName || "Unknown";
+          const companyName = toDummyCompanyName(log.customerData?.companyName || "Unknown");
           const region = log.customerData?.region || "Unknown";
           const industryType = log.customerData?.industryType || "retail";
 

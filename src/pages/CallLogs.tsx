@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { getApiUrl } from "@/lib/api";
+import { getApiUrl, toDummyCompanyName } from "@/lib/api";
 
 interface Company {
   id: number;
@@ -69,7 +69,7 @@ export default function CallLogs() {
         const transformedLogs: CallLog[] = (data.data || []).map(
           (log: any) => ({
             id: log.id,
-            companyName: log.customerData?.companyName || "Not provided",
+            companyName: toDummyCompanyName(log.customerData?.companyName || "Not provided"),
             customerName: log.customerData?.customerName || "Not provided",
             phoneNumber: log.customerData?.phoneNumber || "Not provided",
             vin: log.customerData?.vinNumber || "Not provided",

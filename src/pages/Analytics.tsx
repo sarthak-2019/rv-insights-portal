@@ -27,7 +27,7 @@ import {
   Clock,
   Building2,
 } from "lucide-react";
-import { getApiUrl, apiFetch } from "@/lib/api";
+import { getApiUrl, apiFetch, toDummyCompanyName } from "@/lib/api";
 
 interface ApiStats {
   total: number;
@@ -101,7 +101,7 @@ export default function Analytics() {
         const transformedLogs: CallLog[] = (data.data || []).map(
           (log: any) => ({
             id: log.id,
-            companyName: log.customerData?.companyName || "Not provided",
+            companyName: toDummyCompanyName(log.customerData?.companyName || "Not provided"),
             customerName: log.customerData?.customerName || "Not provided",
             phoneNumber: log.customerData?.phoneNumber || "Not provided",
             vin: log.customerData?.vinNumber || "Not provided",
