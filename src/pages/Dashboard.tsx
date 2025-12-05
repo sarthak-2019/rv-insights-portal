@@ -42,7 +42,7 @@ export default function Dashboard() {
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [quickDateFilter, setQuickDateFilter] = useState<
     "today" | "week" | "month" | "all"
-  >("week");
+  >("all");
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [issueTypes, setIssueTypes] = useState<IssueType[]>([]);
