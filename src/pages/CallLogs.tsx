@@ -4,7 +4,7 @@ import { FilterHeader } from "@/components/common/FilterHeader";
 import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
-import { companies, IssueType, CallLog, CallStatus } from "@/data/mockData";
+import { IssueType, CallLog, CallStatus } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
 import { Search, Download, Filter } from "lucide-react";
@@ -12,7 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { apiFetch, getApiUrl } from "@/lib/api";
+import { getApiUrl } from "@/lib/api";
+
+interface Company {
+  id: number;
+  name: string;
+}
 
 export default function CallLogs() {
   const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
@@ -27,6 +32,7 @@ export default function CallLogs() {
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,10 +82,31 @@ export default function CallLogs() {
             summary: `${log.customerData?.customerName || "Customer"} - ${
               log.customerData?.companyName || "Company"
             }`,
+            transcript: log.transcript || "",
+            date: log.date,
           })
         );
 
         setCallLogs(transformedLogs);
+
+        // Extract unique companies from call logs
+        const uniqueCompanies = new Map<string, Company>();
+        transformedLogs.forEach((log, index) => {
+          if (log.companyName && log.companyName !== "Not provided") {
+            if (!uniqueCompanies.has(log.companyName)) {
+              uniqueCompanies.set(log.companyName, {
+                id: index, // Use index as ID since we don't have company IDs
+                name: log.companyName,
+              });
+            }
+          }
+        });
+
+        const companyList = Array.from(uniqueCompanies.values()).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setCompanies(companyList);
+        console.log("Companies extracted from call logs:", companyList);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to fetch call logs"
@@ -97,7 +124,10 @@ export default function CallLogs() {
     return callLogs.filter((log) => {
       if (
         selectedCompanies.length > 0 &&
-        !selectedCompanies.includes(log.companyId)
+        !selectedCompanies.some((companyId) => {
+          const company = companies.find((c) => c.id === companyId);
+          return company && log.companyName === company.name;
+        })
       ) {
         return false;
       }
@@ -136,6 +166,7 @@ export default function CallLogs() {
     selectedIssueTypes,
     selectedStatus,
     searchQuery,
+    companies,
   ]);
 
   const handleViewTranscript = (callId: string) => {

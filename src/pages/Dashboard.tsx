@@ -6,7 +6,7 @@ import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { companies, dashboardStats, IssueType, CallLog } from "@/data/mockData";
+import { dashboardStats, IssueType, CallLog } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
 import {
@@ -14,18 +14,21 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  Building2,
-  TrendingUp,
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { apiFetch } from "@/lib/api";
+import { getApiUrl } from "@/lib/api";
 
 interface ApiStats {
   total: number;
   completed: number;
   error: number;
   pending: number;
+}
+
+interface Company {
+  id: number;
+  name: string;
 }
 
 export default function Dashboard() {
@@ -40,6 +43,7 @@ export default function Dashboard() {
     "today" | "week" | "month" | "all"
   >("week");
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +60,28 @@ export default function Dashboard() {
       try {
         setLoading(true);
         setError(null);
-        const response = await apiFetch("get-call-list");
+
+        // Convert dateRange to timestamps
+        const params = new URLSearchParams();
+        if (dateRange.from) {
+          const startTimestamp = new Date(dateRange.from).getTime();
+          params.append("startDate", startTimestamp.toString());
+        }
+        if (dateRange.to) {
+          const endTimestamp = new Date(dateRange.to).getTime();
+          params.append("endDate", endTimestamp.toString());
+        }
+
+        const url = `${getApiUrl("get-call-list")}${
+          params.toString() ? `?${params.toString()}` : ""
+        }`;
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`API error: ${response.statusText}`);
         }
         const data = await response.json();
 
-        const countResp = await apiFetch("count-calls");
+        const countResp = await fetch(getApiUrl("count-calls"));
         if (!countResp.ok) {
           throw new Error(`API error: ${countResp.statusText}`);
         }
@@ -93,11 +112,31 @@ export default function Dashboard() {
             issueType: "general",
             hasTranscript: false,
             date: log.date,
-            transcript: log.transcript || '',
+            transcript: log.transcript || "",
           })
         );
 
         setCallLogs(transformedLogs);
+
+        // Extract unique companies from call logs
+        const uniqueCompanies = new Map<string, Company>();
+        transformedLogs.forEach((log, index) => {
+          if (log.companyName && log.companyName !== "Not provided") {
+            if (!uniqueCompanies.has(log.companyName)) {
+              uniqueCompanies.set(log.companyName, {
+                id: index,
+                name: log.companyName,
+              });
+            }
+          }
+        });
+
+        const companyList = Array.from(uniqueCompanies.values()).sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        setCompanies(companyList);
+        console.log("Companies extracted from call logs:", companyList);
+
         setRecentActivity(data.recentIssues || []);
       } catch (err) {
         setError(
@@ -110,19 +149,20 @@ export default function Dashboard() {
     };
 
     fetchCallLogs();
-  }, []);
+  }, [dateRange]);
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
-      // Company filter
       if (
         selectedCompanies.length > 0 &&
-        !selectedCompanies.includes(log.companyId)
+        !selectedCompanies.some((companyId) => {
+          const company = companies.find((c) => c.id === companyId);
+          return company && log.companyName === company.name;
+        })
       ) {
         return false;
       }
 
-      // Department filter
       if (
         selectedDepartment !== "all" &&
         log.department !== selectedDepartment
@@ -130,7 +170,6 @@ export default function Dashboard() {
         return false;
       }
 
-      // Issue type filter
       if (
         selectedIssueTypes.length > 0 &&
         !selectedIssueTypes.includes(log.issueType)
@@ -138,7 +177,6 @@ export default function Dashboard() {
         return false;
       }
 
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -151,13 +189,7 @@ export default function Dashboard() {
 
       return true;
     });
-  }, [
-    callLogs,
-    selectedCompanies,
-    selectedDepartment,
-    selectedIssueTypes,
-    searchQuery,
-  ]);
+  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery, companies]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -175,7 +207,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold gradient-text">RV AI Portal</h1>
             <p className="mt-1 text-muted-foreground">
-              Unified dashboard for {dashboardStats.totalCompanies} companies
+              Unified dashboard for {companies.length} companies
             </p>
           </div>
         </div>
@@ -183,9 +215,7 @@ export default function Dashboard() {
         {/* Error Message */}
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
-            <p className="text-sm font-medium">
-              Error loading call logs: {error}
-            </p>
+            <p className="text-sm font-medium">Error loading call logs: {error}</p>
           </div>
         )}
 
@@ -317,7 +347,7 @@ export default function Dashboard() {
 
           {/* Recent Activity */}
           <div>
-            <RecentActivity logs={recentActivity} />
+            <RecentActivity logs={filteredLogs} />
           </div>
         </div>
 
