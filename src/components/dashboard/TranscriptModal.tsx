@@ -21,7 +21,7 @@ interface TranscriptModalProps {
 }
 
 // Generate mock audit trail for calls without detailed data
-function generateMockAuditTrail(call: CallLog): CallAuditTrail {
+function generateMockAuditTrail(call: any): any {
   return {
     sessionId: `SES-${call.id.replace("CALL-", "")}`,
     callId: call.id,
@@ -35,7 +35,7 @@ function generateMockAuditTrail(call: CallLog): CallAuditTrail {
     agentUsed: "AI Voice Agent v3.2.1",
     aiInterpretations: [
       {
-        userUtterance: call.summary.substring(0, 60) + "...",
+        userUtterance: call.transcript.substring(0, 60) + "...",
         parsedIntent: call.issueType === "parts" ? "parts_inquiry" : call.issueType === "motor" ? "motor_diagnostic" : "general_inquiry",
         entities: [`issue:${call.issueType}`, `company:${call.companyName}`, `vin:${call.vin}`],
         confidence: 0.88 + Math.random() * 0.1,
@@ -76,7 +76,7 @@ function generateMockAuditTrail(call: CallLog): CallAuditTrail {
   };
 }
 
-export function TranscriptModal({ call, open, onClose }: TranscriptModalProps) {
+export function TranscriptModal({ call, open, onClose }: any) {
   if (!call) return null;
 
   const transcript = sampleTranscripts[call.id] || generateMockTranscript(call);
@@ -172,7 +172,7 @@ export function TranscriptModal({ call, open, onClose }: TranscriptModalProps) {
               {/* Summary */}
               <div className="rounded-lg border border-border p-4">
                 <h4 className="mb-2 text-sm font-medium text-muted-foreground">Call Summary</h4>
-                <p className="text-sm">{call.summary}</p>
+                <p className="text-sm">{call.transcript?.substring(0, 200) + "..."}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Issue Type:</span>
                   <Badge variant="secondary" className="capitalize">{call.issueType}</Badge>

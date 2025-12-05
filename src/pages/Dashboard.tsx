@@ -93,6 +93,7 @@ export default function Dashboard() {
             issueType: "general",
             hasTranscript: false,
             date: log.date,
+            transcript: log.transcript || '',
           })
         );
 

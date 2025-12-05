@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 
 export default function Transcripts() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
+  const [selectedCall, setSelectedCall] = useState<any | null>(null);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
 
   const logsWithTranscripts = useMemo(() => {
-    return callLogs.filter((log) => log.hasTranscript);
+    return callLogs.filter((log) => log.transcript);
   }, []);
 
   const filteredLogs = useMemo(() => {
@@ -25,7 +25,7 @@ export default function Transcripts() {
         log.customerName.toLowerCase().includes(query) ||
         log.companyName.toLowerCase().includes(query) ||
         log.id.toLowerCase().includes(query) ||
-        log.summary.toLowerCase().includes(query)
+        log.transcript?.toLowerCase().includes(query)
     );
   }, [logsWithTranscripts, searchQuery]);
 
@@ -86,7 +86,7 @@ export default function Transcripts() {
               <p className="mt-1 text-sm text-muted-foreground">{log.companyName}</p>
 
               <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                {log.summary}
+                {log.transcript?.substring(0, 100) + "..."}
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

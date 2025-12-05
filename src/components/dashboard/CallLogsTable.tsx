@@ -159,7 +159,7 @@ export function CallLogsTable({ logs, onViewTranscript }: CallLogsTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  {log.hasTranscript && (
+                  {true === true && (
                     <Button
                       variant="ghost"
                       size="sm"
