@@ -1,52 +1,77 @@
-import { CallLog } from "@/data/mockData";
-import { cn } from "@/lib/utils";
-import { Phone, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-interface RecentActivityProps {
-  logs: CallLog[];
+interface RecentActivityItem {
+  customerName: string;
+  issueSummary: string;
 }
 
-export function RecentActivity({ logs }: any) {
-  const recentLogs = logs.slice(0, 8);
+interface RecentActivityProps {
+  logs: RecentActivityItem[];
+}
+
+export function RecentActivity({ logs }: RecentActivityProps) {
+  const [expandedAll, setExpandedAll] = useState(false);
+  const itemsToShow = expandedAll ? logs.length : 5;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 animate-fade-in">
-      <h3 className="mb-4 text-lg font-semibold">Recent Activity</h3>
-      <div className="space-y-4">
-        {recentLogs.map((log, index) => (
-          <div
-            key={log.id}
-            className="flex items-start gap-3 animate-slide-up"
-            style={{ animationDelay: `${index * 50}ms` }}
-          >
-            <div
-              className={cn(
-                "mt-0.5 flex h-8 w-8 items-center justify-center rounded-full",
-                log.status === "completed" && "bg-success/10 text-success",
-                log.status === "pending" && "bg-warning/10 text-warning",
-                log.status === "issue" && "bg-destructive/10 text-destructive"
-              )}
-            >
-              {log.status === "completed" && <CheckCircle className="h-4 w-4" />}
-              {log.status === "pending" && <Clock className="h-4 w-4" />}
-              {log.status === "issue" && <AlertCircle className="h-4 w-4" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-medium">
-                  {log.customerName}
-                </p>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {log.date}
-                </span>
-              </div>
-              <p className="truncate text-sm text-muted-foreground">
-                {log.companyName} • {log.issueSummary}
-              </p>
-            </div>
-          </div>
-        ))}
+    <Card className="p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Recent Activity</h3>
+        <Badge variant="secondary" className="text-xs">
+          {logs.length} issues
+        </Badge>
       </div>
-    </div>
+
+      <div className="space-y-3">
+        {logs && logs.length > 0 ? (
+          logs.slice(0, itemsToShow).map((activity, index) => (
+            <div
+              key={index}
+              className="flex gap-3 rounded-lg border border-border bg-secondary/30 p-3 hover:bg-secondary/50 transition-colors animate-fade-in"
+            >
+              <div className="mt-0.5 flex-shrink-0">
+                <AlertCircle className="h-4 w-4 text-warning" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {activity.customerName}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                  {activity.issueSummary}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="flex items-center justify-center rounded-lg border border-dashed border-border p-6">
+            <p className="text-sm text-muted-foreground">No recent activity</p>
+          </div>
+        )}
+      </div>
+
+      {logs && logs.length > 5 && (
+        <Button
+          variant="outline"
+          onClick={() => setExpandedAll(!expandedAll)}
+          className="mt-4 w-full gap-2"
+        >
+          {expandedAll ? (
+            <>
+              <ChevronUp className="h-4 w-4" />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4" />
+              View all ({logs.length})
+            </>
+          )}
+        </Button>
+      )}
+    </Card>
   );
 }

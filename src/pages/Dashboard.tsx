@@ -347,7 +347,7 @@ export default function Dashboard() {
 
           {/* Recent Activity */}
           <div>
-            <RecentActivity logs={filteredLogs} />
+            <RecentActivity logs={recentActivity} />
           </div>
         </div>
 
