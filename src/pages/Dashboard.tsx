@@ -6,7 +6,7 @@ import { CallLogsTable } from "@/components/dashboard/CallLogsTable";
 import { TranscriptModal } from "@/components/dashboard/TranscriptModal";
 import { IssueTypeFilter } from "@/components/dashboard/IssueTypeFilter";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { dashboardStats, IssueType, CallLog } from "@/data/mockData";
+import { IssueType, CallLog } from "@/data/mockData";
 import { useDepartment } from "@/contexts/DepartmentContext";
 import { useFilters } from "@/contexts/FilterContext";
 import {
@@ -57,6 +57,35 @@ export default function Dashboard() {
     pending: 0,
   });
 
+  // Calculate date range based on quick filter
+  const getDateRangeFromQuickFilter = (filter: "today" | "week" | "month" | "all") => {
+    const now = new Date();
+    let from: Date;
+    const to = new Date();
+
+    switch (filter) {
+      case "today":
+        from = new Date();
+        from.setHours(0, 0, 0, 0);
+        break;
+      case "week":
+        from = new Date();
+        from.setDate(now.getDate() - now.getDay());
+        from.setHours(0, 0, 0, 0);
+        break;
+      case "month":
+        from = new Date(now.getFullYear(), now.getMonth(), 1);
+        from.setHours(0, 0, 0, 0);
+        break;
+      case "all":
+      default:
+        from = new Date("2020-01-01");
+        break;
+    }
+
+    return { from: from.toISOString().split("T")[0], to: to.toISOString().split("T")[0] };
+  };
+
   // Fetch call logs from API
   useEffect(() => {
     const fetchCallLogs = async () => {
@@ -64,14 +93,17 @@ export default function Dashboard() {
         setLoading(true);
         setError(null);
 
+        // Get date range based on quick filter
+        const dateRangeParams = getDateRangeFromQuickFilter(quickDateFilter);
+
         // Convert dateRange to timestamps
         const params = new URLSearchParams();
-        if (dateRange.from) {
-          const startTimestamp = new Date(dateRange.from).getTime();
+        if (dateRangeParams.from) {
+          const startTimestamp = new Date(dateRangeParams.from).getTime();
           params.append("startDate", startTimestamp.toString());
         }
-        if (dateRange.to) {
-          const endTimestamp = new Date(dateRange.to).getTime();
+        if (dateRangeParams.to) {
+          const endTimestamp = new Date(dateRangeParams.to).getTime();
           params.append("endDate", endTimestamp.toString());
         }
 
@@ -112,8 +144,8 @@ export default function Dashboard() {
             callType: log.callType,
             success: log.success,
             customerData: log.customerData,
-            issueType: (log.customerData.issueType || "general") as any,
-            department: log.customerData.industryType || "retail",
+            issueType: (log.customerData?.issueType || "general") as IssueType,
+            department: log.customerData?.industryType || "retail",
             hasTranscript: false,
             date: log.date,
             transcript: log.transcript || "",
@@ -159,6 +191,7 @@ export default function Dashboard() {
         console.log("Companies extracted from call logs:", companyList);
         console.log("Issue types extracted from call logs:", issueTypesList);
         console.log("Departments extracted from call logs:", departmentsList);
+        console.log("Date range applied:", dateRangeParams);
 
         setRecentActivity(data.recentIssues || []);
       } catch (err) {
@@ -172,7 +205,7 @@ export default function Dashboard() {
     };
 
     fetchCallLogs();
-  }, [dateRange]);
+  }, [quickDateFilter]);
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
@@ -231,6 +264,10 @@ export default function Dashboard() {
       setSelectedCall(call);
       setTranscriptOpen(true);
     }
+  };
+
+  const handleQuickDateFilter = (filter: "today" | "week" | "month" | "all") => {
+    setQuickDateFilter(filter);
   };
 
   return (
@@ -300,41 +337,41 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <div className="flex gap-1 bg-muted rounded-lg p-1">
                   <button
-                    onClick={() => setQuickDateFilter("today")}
+                    onClick={() => handleQuickDateFilter("today")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                       quickDateFilter === "today"
-                        ? "bg-background shadow-sm"
-                        : "hover:bg-background/50"
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:bg-background/50"
                     }`}
                   >
                     Today
                   </button>
                   <button
-                    onClick={() => setQuickDateFilter("week")}
+                    onClick={() => handleQuickDateFilter("week")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                       quickDateFilter === "week"
-                        ? "bg-background shadow-sm"
-                        : "hover:bg-background/50"
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:bg-background/50"
                     }`}
                   >
                     Week
                   </button>
                   <button
-                    onClick={() => setQuickDateFilter("month")}
+                    onClick={() => handleQuickDateFilter("month")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                       quickDateFilter === "month"
-                        ? "bg-background shadow-sm"
-                        : "hover:bg-background/50"
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:bg-background/50"
                     }`}
                   >
                     Month
                   </button>
                   <button
-                    onClick={() => setQuickDateFilter("all")}
+                    onClick={() => handleQuickDateFilter("all")}
                     className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                       quickDateFilter === "all"
-                        ? "bg-background shadow-sm"
-                        : "hover:bg-background/50"
+                        ? "bg-background shadow-sm text-foreground"
+                        : "text-muted-foreground hover:bg-background/50"
                     }`}
                   >
                     All Time
