@@ -160,14 +160,12 @@ export default function Dashboard() {
         const uniqueDepartments = new Set<string>();
 
         transformedLogs.forEach((log, index) => {
-          // Extract companies
-          if (log.companyName && log.companyName !== "Not provided") {
-            if (!uniqueCompanies.has(log.companyName)) {
-              uniqueCompanies.set(log.companyName, {
-                id: index,
-                name: log.companyName,
-              });
-            }
+          // Extract companies (all have dummy names now)
+          if (log.companyName && !uniqueCompanies.has(log.companyName)) {
+            uniqueCompanies.set(log.companyName, {
+              id: index,
+              name: log.companyName,
+            });
           }
 
           // Extract issue types
