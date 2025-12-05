@@ -296,6 +296,47 @@ export default function Analytics() {
     "hsl(280, 65%, 60%)",
   ];
 
+  // Static data for department breakdown
+  const departmentBreakdown = [
+    { name: "Retail", calls: 1245, resolved: 1180 },
+    { name: "Service", calls: 2340, resolved: 2156 },
+    { name: "Maintenance", calls: 890, resolved: 845 },
+    { name: "Compliance", calls: 456, resolved: 432 },
+    { name: "Claims/Warranty", calls: 1678, resolved: 1520 },
+    { name: "Manufacturer", calls: 567, resolved: 534 },
+  ];
+
+  // Static peak hours data
+  const peakHoursData = [
+    { hour: "6AM", calls: 45 },
+    { hour: "8AM", calls: 120 },
+    { hour: "10AM", calls: 285 },
+    { hour: "12PM", calls: 190 },
+    { hour: "2PM", calls: 310 },
+    { hour: "4PM", calls: 265 },
+    { hour: "6PM", calls: 145 },
+    { hour: "8PM", calls: 65 },
+  ];
+
+  // Static monthly comparison
+  const monthlyTrend = [
+    { month: "Jul", calls: 4520, resolved: 4280, avgTime: 4.2 },
+    { month: "Aug", calls: 4890, resolved: 4650, avgTime: 4.0 },
+    { month: "Sep", calls: 5234, resolved: 4980, avgTime: 3.8 },
+    { month: "Oct", calls: 5678, resolved: 5420, avgTime: 3.5 },
+    { month: "Nov", calls: 6120, resolved: 5890, avgTime: 3.3 },
+    { month: "Dec", calls: 5890, resolved: 5650, avgTime: 3.4 },
+  ];
+
+  // Resolution rate by issue type (static)
+  const resolutionByIssue = [
+    { type: "Warranty", rate: 92, count: 1245 },
+    { type: "Technical", rate: 88, count: 2340 },
+    { type: "Billing", rate: 95, count: 890 },
+    { type: "Parts", rate: 85, count: 1567 },
+    { type: "General", rate: 97, count: 2100 },
+  ];
+
   if (loading) {
     return (
       <MainLayout>
@@ -567,7 +608,85 @@ export default function Analytics() {
               </PieChart>
             </ResponsiveContainer>
           </Card>
+
+          {/* Department Breakdown */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">Calls by Department</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={departmentBreakdown}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="calls" fill="hsl(217, 91%, 60%)" name="Total Calls" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="resolved" fill="hsl(142, 76%, 36%)" name="Resolved" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+
+          {/* Peak Hours */}
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">Peak Call Hours</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={peakHoursData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar dataKey="calls" fill="hsl(280, 65%, 60%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
         </div>
+
+        {/* Monthly Trend - Full Width */}
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">6-Month Performance Trend</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={monthlyTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="calls" stroke="hsl(217, 91%, 60%)" strokeWidth={2} name="Total Calls" />
+              <Line type="monotone" dataKey="resolved" stroke="hsl(142, 76%, 36%)" strokeWidth={2} name="Resolved" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        {/* Resolution Rate by Issue Type */}
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">Resolution Rate by Issue Type</h3>
+          <div className="grid gap-4 sm:grid-cols-5">
+            {resolutionByIssue.map((item) => (
+              <div key={item.type} className="rounded-lg bg-secondary/50 p-4 text-center">
+                <p className="text-sm text-muted-foreground">{item.type}</p>
+                <p className="text-2xl font-bold text-primary">{item.rate}%</p>
+                <p className="text-xs text-muted-foreground">{item.count.toLocaleString()} calls</p>
+              </div>
+            ))}
+          </div>
+        </Card>
 
         {/* Call Status Summary */}
         <Card className="p-6">
