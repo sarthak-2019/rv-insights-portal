@@ -17,6 +17,7 @@ import {
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { getApiUrl } from "@/lib/api";
 
 interface ApiStats {
@@ -34,7 +35,7 @@ interface Company {
 export default function Dashboard() {
   const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
     useFilters();
-  const { selectedDepartment } = useDepartment();
+  const { selectedDepartment, setSelectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
@@ -44,6 +45,8 @@ export default function Dashboard() {
   >("week");
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [issueTypes, setIssueTypes] = useState<IssueType[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +112,8 @@ export default function Dashboard() {
             callType: log.callType,
             success: log.success,
             customerData: log.customerData,
-            issueType: "general",
+            issueType: (log.customerData.issueType || "general") as any,
+            department: log.customerData.industryType || "retail",
             hasTranscript: false,
             date: log.date,
             transcript: log.transcript || "",
@@ -120,7 +124,11 @@ export default function Dashboard() {
 
         // Extract unique companies from call logs
         const uniqueCompanies = new Map<string, Company>();
+        const uniqueIssueTypes = new Set<IssueType>();
+        const uniqueDepartments = new Set<string>();
+
         transformedLogs.forEach((log, index) => {
+          // Extract companies
           if (log.companyName && log.companyName !== "Not provided") {
             if (!uniqueCompanies.has(log.companyName)) {
               uniqueCompanies.set(log.companyName, {
@@ -129,13 +137,28 @@ export default function Dashboard() {
               });
             }
           }
+
+          // Extract issue types
+          uniqueIssueTypes.add(log.issueType);
+
+          // Extract departments
+          uniqueDepartments.add(log.department);
         });
 
         const companyList = Array.from(uniqueCompanies.values()).sort((a, b) =>
           a.name.localeCompare(b.name)
         );
         setCompanies(companyList);
+
+        const issueTypesList = Array.from(uniqueIssueTypes).sort();
+        setIssueTypes(issueTypesList);
+
+        const departmentsList = Array.from(uniqueDepartments).sort();
+        setDepartments(departmentsList);
+
         console.log("Companies extracted from call logs:", companyList);
+        console.log("Issue types extracted from call logs:", issueTypesList);
+        console.log("Departments extracted from call logs:", departmentsList);
 
         setRecentActivity(data.recentIssues || []);
       } catch (err) {
@@ -153,6 +176,7 @@ export default function Dashboard() {
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
+      // Company filter
       if (
         selectedCompanies.length > 0 &&
         !selectedCompanies.some((companyId) => {
@@ -163,6 +187,7 @@ export default function Dashboard() {
         return false;
       }
 
+      // Department filter
       if (
         selectedDepartment !== "all" &&
         log.department !== selectedDepartment
@@ -170,6 +195,7 @@ export default function Dashboard() {
         return false;
       }
 
+      // Issue type filter
       if (
         selectedIssueTypes.length > 0 &&
         !selectedIssueTypes.includes(log.issueType)
@@ -177,6 +203,7 @@ export default function Dashboard() {
         return false;
       }
 
+      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -189,7 +216,14 @@ export default function Dashboard() {
 
       return true;
     });
-  }, [callLogs, selectedCompanies, selectedDepartment, selectedIssueTypes, searchQuery, companies]);
+  }, [
+    callLogs,
+    selectedCompanies,
+    selectedDepartment,
+    selectedIssueTypes,
+    searchQuery,
+    companies,
+  ]);
 
   const handleViewTranscript = (callId: string) => {
     const call = callLogs.find((c) => c.id === callId);
@@ -317,14 +351,49 @@ export default function Dashboard() {
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">
-                Filter by issue type:
-              </span>
-              <IssueTypeFilter
-                selected={selectedIssueTypes}
-                onChange={setSelectedIssueTypes}
-              />
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-2 flex-1">
+                <span className="text-sm text-muted-foreground">
+                  Filter by issue type:
+                </span>
+                {issueTypes.length > 0 ? (
+                  <IssueTypeFilter
+                    selected={selectedIssueTypes}
+                    onChange={setSelectedIssueTypes}
+                    availableTypes={issueTypes}
+                  />
+                ) : (
+                  <p className="text-xs text-muted-foreground">Loading issue types...</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 flex-1">
+                <span className="text-sm text-muted-foreground">Department:</span>
+                {departments.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={selectedDepartment === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedDepartment("all")}
+                      className="capitalize"
+                    >
+                      All
+                    </Button>
+                    {departments.map((dept) => (
+                      <Button
+                        key={dept}
+                        variant={selectedDepartment === dept ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedDepartment(dept as any)}
+                        className="capitalize"
+                      >
+                        {dept}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Loading departments...</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

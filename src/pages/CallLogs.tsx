@@ -22,7 +22,7 @@ interface Company {
 export default function CallLogs() {
   const { selectedCompanies, setSelectedCompanies, dateRange, setDateRange } =
     useFilters();
-  const { selectedDepartment } = useDepartment();
+  const { selectedDepartment, setSelectedDepartment } = useDepartment();
   const [selectedIssueTypes, setSelectedIssueTypes] = useState<IssueType[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<CallStatus | "all">(
     "all"
@@ -33,6 +33,8 @@ export default function CallLogs() {
   const [showFilters, setShowFilters] = useState(true);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [issueTypes, setIssueTypes] = useState<IssueType[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +79,8 @@ export default function CallLogs() {
             callType: log.callType,
             success: log.success,
             customerData: log.customerData,
-            issueType: "general",
+            issueType: (log.customerData?.issueType || "general") as any,
+            department: log.customerData?.industryType || "retail",
             hasTranscript: false,
             summary: `${log.customerData?.customerName || "Customer"} - ${
               log.customerData?.companyName || "Company"
@@ -89,24 +92,43 @@ export default function CallLogs() {
 
         setCallLogs(transformedLogs);
 
-        // Extract unique companies from call logs
+        // Extract unique companies, issue types, and departments
         const uniqueCompanies = new Map<string, Company>();
+        const uniqueIssueTypes = new Set<IssueType>();
+        const uniqueDepartments = new Set<string>();
+
         transformedLogs.forEach((log, index) => {
+          // Extract companies
           if (log.companyName && log.companyName !== "Not provided") {
             if (!uniqueCompanies.has(log.companyName)) {
               uniqueCompanies.set(log.companyName, {
-                id: index, // Use index as ID since we don't have company IDs
+                id: index,
                 name: log.companyName,
               });
             }
           }
+
+          // Extract issue types
+          uniqueIssueTypes.add(log.issueType);
+
+          // Extract departments
+          uniqueDepartments.add(log.department);
         });
 
         const companyList = Array.from(uniqueCompanies.values()).sort((a, b) =>
           a.name.localeCompare(b.name)
         );
         setCompanies(companyList);
+
+        const issueTypesList = Array.from(uniqueIssueTypes).sort();
+        setIssueTypes(issueTypesList);
+
+        const departmentsList = Array.from(uniqueDepartments).sort();
+        setDepartments(departmentsList);
+
         console.log("Companies extracted from call logs:", companyList);
+        console.log("Issue types extracted from call logs:", issueTypesList);
+        console.log("Departments extracted from call logs:", departmentsList);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to fetch call logs"
@@ -122,6 +144,7 @@ export default function CallLogs() {
 
   const filteredLogs = useMemo(() => {
     return callLogs.filter((log) => {
+      // Company filter
       if (
         selectedCompanies.length > 0 &&
         !selectedCompanies.some((companyId) => {
@@ -131,21 +154,29 @@ export default function CallLogs() {
       ) {
         return false;
       }
+
+      // Department filter
       if (
         selectedDepartment !== "all" &&
         log.department !== selectedDepartment
       ) {
         return false;
       }
+
+      // Issue type filter
       if (
         selectedIssueTypes.length > 0 &&
         !selectedIssueTypes.includes(log.issueType)
       ) {
         return false;
       }
+
+      // Status filter
       if (selectedStatus !== "all" && log.status !== selectedStatus) {
         return false;
       }
+
+      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -157,6 +188,7 @@ export default function CallLogs() {
           (log.vin && log.vin.toLowerCase().includes(query))
         );
       }
+
       return true;
     });
   }, [
@@ -255,20 +287,62 @@ export default function CallLogs() {
         {/* Additional Filters */}
         {showFilters && (
           <div className="rounded-xl border border-border bg-card p-4 animate-fade-in space-y-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex flex-col gap-2 flex-1">
                 <span className="text-sm text-muted-foreground">
-                  Issue type:
+                  Filter by issue type:
                 </span>
-                <IssueTypeFilter
-                  selected={selectedIssueTypes}
-                  onChange={setSelectedIssueTypes}
-                />
+                {issueTypes.length > 0 ? (
+                  <IssueTypeFilter
+                    selected={selectedIssueTypes}
+                    onChange={setSelectedIssueTypes}
+                    availableTypes={issueTypes}
+                  />
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Loading issue types...
+                  </p>
+                )}
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 flex-1">
+                <span className="text-sm text-muted-foreground">Department:</span>
+                {departments.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={
+                        selectedDepartment === "all" ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() => setSelectedDepartment("all")}
+                      className="capitalize"
+                    >
+                      All
+                    </Button>
+                    {departments.map((dept) => (
+                      <Button
+                        key={dept}
+                        variant={
+                          selectedDepartment === dept ? "default" : "outline"
+                        }
+                        size="sm"
+                        onClick={() => setSelectedDepartment(dept as any)}
+                        className="capitalize"
+                      >
+                        {dept}
+                      </Button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Loading departments...
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2 flex-1">
                 <span className="text-sm text-muted-foreground">Status:</span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {(["all", "completed", "pending", "issue"] as const).map(
                     (status) => (
                       <button
