@@ -337,6 +337,43 @@ export default function Analytics() {
     { type: "General", rate: 97, count: 2100 },
   ];
 
+  // Heatmap data - Top Repair Issues by Model/Part
+  const heatmapData = [
+    { model: "Class A Diesel", ac: 85, electrical: 62, plumbing: 45, slideout: 78, generator: 92 },
+    { model: "Class C Gas", ac: 72, electrical: 55, plumbing: 68, slideout: 45, generator: 38 },
+    { model: "Fifth Wheel", ac: 58, electrical: 82, plumbing: 35, slideout: 95, generator: 22 },
+    { model: "Travel Trailer", ac: 45, electrical: 48, plumbing: 72, slideout: 65, generator: 15 },
+    { model: "Toy Hauler", ac: 38, electrical: 75, plumbing: 28, slideout: 52, generator: 68 },
+  ];
+
+  // Company performance data (static)
+  const companyPerformance = [
+    { name: "Summit RV Group", calls: 1245, resolved: 1180, avgTime: "3.2m", satisfaction: 94 },
+    { name: "Horizon Motors", calls: 987, resolved: 945, avgTime: "2.8m", satisfaction: 96 },
+    { name: "Coastal Camping Co", calls: 856, resolved: 798, avgTime: "4.1m", satisfaction: 89 },
+    { name: "Mountain View RV", calls: 743, resolved: 712, avgTime: "3.5m", satisfaction: 92 },
+    { name: "Desert Sun Motors", calls: 654, resolved: 620, avgTime: "3.8m", satisfaction: 91 },
+    { name: "Pacific Coast RV", calls: 589, resolved: 565, avgTime: "2.9m", satisfaction: 95 },
+  ];
+
+  // Region data
+  const regionData = [
+    { region: "West Coast", calls: 3245, percentage: 28 },
+    { region: "Southeast", calls: 2890, percentage: 25 },
+    { region: "Midwest", calls: 2456, percentage: 21 },
+    { region: "Northeast", calls: 1678, percentage: 14 },
+    { region: "Southwest", calls: 1390, percentage: 12 },
+  ];
+
+  // Helper function for heatmap color
+  const getHeatColor = (value: number) => {
+    if (value >= 80) return "bg-red-500/80";
+    if (value >= 60) return "bg-orange-500/70";
+    if (value >= 40) return "bg-yellow-500/60";
+    if (value >= 20) return "bg-green-500/50";
+    return "bg-green-600/40";
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -687,6 +724,139 @@ export default function Analytics() {
             ))}
           </div>
         </Card>
+
+        {/* Repair Issues Heatmap */}
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">Top Repair Issues Heatmap (by Model & Part)</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="py-3 px-4 text-left font-medium">RV Model</th>
+                  <th className="py-3 px-4 text-center font-medium">AC/HVAC</th>
+                  <th className="py-3 px-4 text-center font-medium">Electrical</th>
+                  <th className="py-3 px-4 text-center font-medium">Plumbing</th>
+                  <th className="py-3 px-4 text-center font-medium">Slide-Out</th>
+                  <th className="py-3 px-4 text-center font-medium">Generator</th>
+                </tr>
+              </thead>
+              <tbody>
+                {heatmapData.map((row) => (
+                  <tr key={row.model} className="border-b border-border/50">
+                    <td className="py-3 px-4 font-medium">{row.model}</td>
+                    <td className="py-2 px-2">
+                      <div className={`mx-auto w-16 rounded py-2 text-center text-xs font-bold text-white ${getHeatColor(row.ac)}`}>
+                        {row.ac}
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className={`mx-auto w-16 rounded py-2 text-center text-xs font-bold text-white ${getHeatColor(row.electrical)}`}>
+                        {row.electrical}
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className={`mx-auto w-16 rounded py-2 text-center text-xs font-bold text-white ${getHeatColor(row.plumbing)}`}>
+                        {row.plumbing}
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className={`mx-auto w-16 rounded py-2 text-center text-xs font-bold text-white ${getHeatColor(row.slideout)}`}>
+                        {row.slideout}
+                      </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <div className={`mx-auto w-16 rounded py-2 text-center text-xs font-bold text-white ${getHeatColor(row.generator)}`}>
+                        {row.generator}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1"><div className="h-3 w-3 rounded bg-green-600/40" /> Low (0-19)</div>
+            <div className="flex items-center gap-1"><div className="h-3 w-3 rounded bg-green-500/50" /> Medium-Low (20-39)</div>
+            <div className="flex items-center gap-1"><div className="h-3 w-3 rounded bg-yellow-500/60" /> Medium (40-59)</div>
+            <div className="flex items-center gap-1"><div className="h-3 w-3 rounded bg-orange-500/70" /> High (60-79)</div>
+            <div className="flex items-center gap-1"><div className="h-3 w-3 rounded bg-red-500/80" /> Critical (80+)</div>
+          </div>
+        </Card>
+
+        {/* Company Performance Table */}
+        <Card className="p-6">
+          <h3 className="mb-4 text-lg font-semibold">Company Performance Overview</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="py-3 px-4 text-left font-medium">Company</th>
+                  <th className="py-3 px-4 text-right font-medium">Total Calls</th>
+                  <th className="py-3 px-4 text-right font-medium">Resolved</th>
+                  <th className="py-3 px-4 text-right font-medium">Avg Time</th>
+                  <th className="py-3 px-4 text-right font-medium">Satisfaction</th>
+                </tr>
+              </thead>
+              <tbody>
+                {companyPerformance.map((company) => (
+                  <tr key={company.name} className="border-b border-border/50 hover:bg-secondary/30">
+                    <td className="py-3 px-4 font-medium">{company.name}</td>
+                    <td className="py-3 px-4 text-right">{company.calls.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-success">{company.resolved.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right">{company.avgTime}</td>
+                    <td className="py-3 px-4 text-right">
+                      <span className={company.satisfaction >= 93 ? "text-success" : company.satisfaction >= 90 ? "text-warning" : "text-destructive"}>
+                        {company.satisfaction}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {/* Regional Breakdown */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">Calls by Region</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={regionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="region" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar dataKey="calls" fill="hsl(173, 80%, 40%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">Regional Distribution</h3>
+            <div className="space-y-4">
+              {regionData.map((region) => (
+                <div key={region.region} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>{region.region}</span>
+                    <span className="font-medium">{region.percentage}%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-secondary">
+                    <div
+                      className="h-2 rounded-full bg-primary"
+                      style={{ width: `${region.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
 
         {/* Call Status Summary */}
         <Card className="p-6">
