@@ -290,7 +290,7 @@ export const predictiveAlerts: PredictiveAlert[] = [
     id: "pred-2",
     severity: "high",
     category: "HVAC",
-    prediction: "Dometic AC compressor failures trending up across all 2022-2023 models",
+    prediction: "ClimaTech AC compressor failures trending up across all 2022-2023 models",
     affectedModels: ["Keystone Montana", "Thor Venetian", "Winnebago Vista"],
     confidence: 87,
     estimatedImpact: "~620 warranty claims",
@@ -312,7 +312,7 @@ export const predictiveAlerts: PredictiveAlert[] = [
     id: "pred-4",
     severity: "medium",
     category: "Chassis",
-    prediction: "Lippert slide mechanism wear patterns indicate service needs",
+    prediction: "SlideMaster slide mechanism wear patterns indicate service needs",
     affectedModels: ["Grand Design Solitude", "Jayco North Point"],
     confidence: 82,
     estimatedImpact: "~290 maintenance visits",
@@ -349,7 +349,7 @@ export interface VendorPerformance {
 export const vendorPerformance: VendorPerformance[] = [
   {
     id: "v-1",
-    vendor: "Lippert Components",
+    vendor: "SlideMaster Components",
     category: "Chassis & Slide Systems",
     totalUnits: 12450,
     failureRate: 8.3,
@@ -361,7 +361,7 @@ export const vendorPerformance: VendorPerformance[] = [
   },
   {
     id: "v-2",
-    vendor: "Dometic",
+    vendor: "ClimaTech Industries",
     category: "HVAC & Appliances",
     totalUnits: 18920,
     failureRate: 12.7,
@@ -373,7 +373,7 @@ export const vendorPerformance: VendorPerformance[] = [
   },
   {
     id: "v-3",
-    vendor: "Firefly Integrations",
+    vendor: "SparkTech Integrations",
     category: "Electrical Systems",
     totalUnits: 8650,
     failureRate: 15.2,
@@ -385,7 +385,7 @@ export const vendorPerformance: VendorPerformance[] = [
   },
   {
     id: "v-4",
-    vendor: "Furrion",
+    vendor: "VisionTech Electronics",
     category: "Electronics & Entertainment",
     totalUnits: 15230,
     failureRate: 6.1,
@@ -397,7 +397,7 @@ export const vendorPerformance: VendorPerformance[] = [
   },
   {
     id: "v-5",
-    vendor: "Truma",
+    vendor: "HeatFlow Systems",
     category: "Heating & Water",
     totalUnits: 9870,
     failureRate: 4.8,
@@ -409,7 +409,7 @@ export const vendorPerformance: VendorPerformance[] = [
   },
   {
     id: "v-6",
-    vendor: "Winegard",
+    vendor: "SignalWave Tech",
     category: "Satellite & Antenna",
     totalUnits: 11450,
     failureRate: 7.2,
@@ -515,16 +515,16 @@ export interface RepairIssue {
 }
 
 export const repairIssues: RepairIssue[] = [
-  { category: "Electrical", issue: "Firefly Control Panel", count: 287, severity: "critical", trend: 43, topModels: ["Jayco 2023", "Grand Design"] },
-  { category: "HVAC", issue: "Dometic AC Compressor", count: 243, severity: "critical", trend: 38, topModels: ["Thor Venetian", "Keystone Montana"] },
-  { category: "Plumbing", issue: "Water Pump Failure", count: 156, severity: "high", trend: -12, topModels: ["Forest River", "Dutchmen"] },
-  { category: "Chassis", issue: "Lippert Slide Issues", count: 198, severity: "high", trend: 25, topModels: ["Grand Design Solitude", "Jayco North Point"] },
+  { category: "Electrical", issue: "SparkTech Control Panel", count: 287, severity: "critical", trend: 43, topModels: ["Model A 2023", "Model B"] },
+  { category: "HVAC", issue: "ClimaTech AC Compressor", count: 243, severity: "critical", trend: 38, topModels: ["Model C", "Model D"] },
+  { category: "Plumbing", issue: "Water Pump Failure", count: 156, severity: "high", trend: -12, topModels: ["Model E", "Model F"] },
+  { category: "Chassis", issue: "SlideMaster Slide Issues", count: 198, severity: "high", trend: 25, topModels: ["Model G", "Model H"] },
   { category: "Appliances", issue: "Refrigerator Cooling", count: 134, severity: "medium", trend: 8, topModels: ["Various 2020-2021 Models"] },
-  { category: "Electronics", issue: "Camera System", count: 92, severity: "medium", trend: -5, topModels: ["Furrion equipped models"] },
+  { category: "Electronics", issue: "Camera System", count: 92, severity: "medium", trend: -5, topModels: ["VisionTech equipped models"] },
   { category: "Electrical", issue: "Battery Management", count: 167, severity: "high", trend: 31, topModels: ["Lithium models 2023"] },
-  { category: "HVAC", issue: "Furnace Ignition", count: 78, severity: "medium", trend: 2, topModels: ["Truma equipped"] },
-  { category: "Chassis", issue: "Leveling Jack Hydraulics", count: 112, severity: "high", trend: 18, topModels: ["Lippert equipped"] },
-  { category: "Plumbing", issue: "Water Heater", count: 89, severity: "medium", trend: -8, topModels: ["Suburban/Atwood models"] },
+  { category: "HVAC", issue: "Furnace Ignition", count: 78, severity: "medium", trend: 2, topModels: ["HeatFlow equipped"] },
+  { category: "Chassis", issue: "Leveling Jack Hydraulics", count: 112, severity: "high", trend: 18, topModels: ["SlideMaster equipped"] },
+  { category: "Plumbing", issue: "Water Heater", count: 89, severity: "medium", trend: -8, topModels: ["Standard models"] },
 ];
 
 // Technician Performance
@@ -811,24 +811,24 @@ export const detailedTranscripts: Record<string, DetailedTranscript> = {
     segments: [
       { id: "s1", timestamp: "00:00", speaker: "system", text: "Call connected. Recording started." },
       { id: "s2", timestamp: "00:03", speaker: "agent", text: "Good afternoon, this is Sarah from RV Technical Support. How may I assist you?", sentiment: "positive", confidence: 0.94 },
-      { id: "s3", timestamp: "00:09", speaker: "customer", text: "Hi Sarah, I'm having a major problem with my Dometic AC unit. It's completely stopped cooling.", sentiment: "negative", confidence: 0.89 },
+      { id: "s3", timestamp: "00:09", speaker: "customer", text: "Hi Sarah, I'm having a major problem with my ClimaTech AC unit. It's completely stopped cooling.", sentiment: "negative", confidence: 0.89 },
       { id: "s4", timestamp: "00:17", speaker: "agent", text: "I understand how frustrating that must be, especially in this heat. Let me help you troubleshoot this. Can you tell me what model year your RV is?", sentiment: "positive", confidence: 0.91 },
       { id: "s5", timestamp: "00:28", speaker: "customer", text: "It's a 2022 Thor Venetian.", sentiment: "neutral", confidence: 0.95 },
       { id: "s6", timestamp: "00:32", speaker: "agent", text: "Thank you. Is the unit turning on at all, or is it completely unresponsive?", sentiment: "neutral", confidence: 0.93 },
       { id: "s7", timestamp: "00:38", speaker: "customer", text: "It turns on, the fan runs, but there's no cold air coming out.", sentiment: "negative", confidence: 0.87 },
       { id: "s8", timestamp: "00:45", speaker: "agent", text: "Okay, that helps narrow it down. It sounds like it could be a compressor issue. Have you checked your circuit breaker to make sure it hasn't tripped?", sentiment: "neutral", confidence: 0.90 },
       { id: "s9", timestamp: "00:55", speaker: "customer", text: "Yes, I checked that first thing. Everything looks fine there.", sentiment: "neutral", confidence: 0.92 },
-      { id: "s10", timestamp: "01:00", speaker: "agent", text: "I'm going to send you a diagnostic video that shows how to check the compressor. This is a common issue we've been seeing with 2022-2023 Dometic units. In the meantime, I'll create a priority service ticket.", sentiment: "positive", confidence: 0.88 },
+      { id: "s10", timestamp: "01:00", speaker: "agent", text: "I'm going to send you a diagnostic video that shows how to check the compressor. This is a common issue we've been seeing with 2022-2023 ClimaTech units. In the meantime, I'll create a priority service ticket.", sentiment: "positive", confidence: 0.88 },
       { id: "s11", timestamp: "01:15", speaker: "customer", text: "That would be great. How soon can someone look at it?", sentiment: "neutral", confidence: 0.90 },
       { id: "s12", timestamp: "01:20", speaker: "agent", text: "I can get you scheduled for tomorrow morning at 8 AM. We'll also check if this is covered under your warranty.", sentiment: "positive", confidence: 0.95 },
       { id: "s13", timestamp: "01:30", speaker: "customer", text: "Perfect, thank you so much for your help!", sentiment: "positive", confidence: 0.97 },
       { id: "s14", timestamp: "01:35", speaker: "agent", text: "You're welcome! I'm sending the video and appointment confirmation to your email now. We'll take good care of you tomorrow.", sentiment: "positive", confidence: 0.96 },
       { id: "s15", timestamp: "01:45", speaker: "system", text: "Call ended. Total duration: 12 minutes 30 seconds." },
     ],
-    summary: "Customer reported complete cooling failure on 2022 Thor Venetian Dometic AC unit. Compressor suspected. Priority service scheduled for next day with warranty check.",
+    summary: "Customer reported complete cooling failure on 2022 Model C ClimaTech AC unit. Compressor suspected. Priority service scheduled for next day with warranty check.",
     keyPoints: [
       "AC fan running but no cooling",
-      "2022 Thor Venetian - Dometic AC",
+      "2022 Model C - ClimaTech AC",
       "Circuit breaker checked - working fine",
       "Compressor failure suspected",
       "Priority appointment scheduled for 8 AM next day"
